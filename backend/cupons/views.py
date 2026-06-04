@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import Cupom
+from .serializers import CupomSerializer
 
-# Create your views here.
+
+class CupomViewSet(viewsets.ModelViewSet):
+    queryset = Cupom.objects.all()
+    serializer_class = CupomSerializer
