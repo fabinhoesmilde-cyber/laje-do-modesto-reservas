@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from clientes.models import Cliente
 from cupons.models import Cupom
@@ -41,6 +42,21 @@ class Reserva(models.Model):
 
     hora_fim = models.TimeField()
 
+    nova_data_solicitada = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    novo_horario_inicio_solicitado = models.TimeField(
+        null=True,
+        blank=True
+    )
+
+    novo_horario_fim_solicitado = models.TimeField(
+        null=True,
+        blank=True
+    )
+
     valor_base = models.DecimalField(
         max_digits=10,
         decimal_places=2
@@ -71,6 +87,18 @@ class Reserva(models.Model):
     criado_em = models.DateTimeField(
         auto_now_add=True
     )
+
+    codigo_reserva = models.CharField(
+    max_length=20,
+    unique=True,
+    blank=True,
+    null=True
+)
+    def save(self, *args, **kwargs):
+        if not self.codigo_reserva:
+            self.codigo_reserva = f"LDM-{uuid.uuid4().hex[:8].upper()}"
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.cliente.nome} - {self.data_reserva}"

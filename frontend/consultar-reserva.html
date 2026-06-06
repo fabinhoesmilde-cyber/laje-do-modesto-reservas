@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Consultar Reserva - Laje do Modesto</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <main class="container">
+    <h1>Consultar Reserva</h1>
+    <p>Informe seu CPF e o código da reserva.</p>
+
+    <form id="formConsultaReserva">
+      <input type="text" id="cpfConsulta" placeholder="CPF" required>
+      <input type="text" id="codigoReservaConsulta" placeholder="Código da reserva" required>
+
+      <button type="submit">Consultar</button>
+    </form>
+
+    <div id="resultadoConsulta"></div>
+
+    <br>
+    <a href="index.html">Voltar para a home</a>
+  </main>
+
+  <script src="consultar-reserva.js"></script>
+</body>
+</html>

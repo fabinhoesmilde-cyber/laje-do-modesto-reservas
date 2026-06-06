@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Laje do Modesto - Reservas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Laje do Modesto</h1>
+    <p>Faça sua pré-reserva</p>
+
+    <form id="formReserva">
+      <input type="text" id="nome" placeholder="Nome completo" required>
+      <input type="text" id="cpf" placeholder="CPF" required>
+      <input type="text" id="telefone" placeholder="Telefone" required>
+      <input type="email" id="email" placeholder="Email" required>
+
+      <input type="date" id="data_reserva" required>
+      <input type="time" id="hora_inicio" required>
+      <input type="time" id="hora_fim" required>
+
+      <button type="submit">Enviar reserva</button>
+    </form>
+
+    <p id="mensagem"></p>
+
+    <section class="reservas-section">
+        <h2>Disponibilidade da Laje</h2>
+        <div id="listaReservas"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
