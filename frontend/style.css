@@ -181,6 +181,16 @@ footer {
 }
 
 @media (max-width: 800px) {
+  .topo nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.topo nav a {
+    margin-left: 0;
+}
   .hero-content h1 {
     font-size: 42px;
   }
@@ -198,6 +208,22 @@ footer {
     flex-direction: column;
     gap: 10px;
   }
+  @media (max-width: 480px) {
+
+  .hero-content h1 {
+    font-size: 32px;
+  }
+
+  .hero-content p {
+    font-size: 16px;
+  }
+
+  .btn-principal {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+}
 }
 
 /* Botão flutuante do WhatsApp */
