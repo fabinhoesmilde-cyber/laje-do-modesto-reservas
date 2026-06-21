@@ -1,18 +1,32 @@
+/* =========================================================
+   GERAL - TODAS AS PÁGINAS
+   Usado em: index.html, reservas.html, consultar-reserva.html,
+   admin-login.html, admin.html
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: Arial, sans-serif;
   background: #f3f3f3;
   margin: 0;
+  color: #222;
 }
 
 .container {
   max-width: 500px;
-  margin: 60px auto;
+  margin: 40px auto;
   background: white;
-  padding: 30px;
-  border-radius: 10px;
+  padding: 25px;
+  border-radius: 12px;
 }
 
-h1, p {
+h1,
+h2,
+h3,
+p {
   text-align: center;
 }
 
@@ -22,40 +36,32 @@ form {
   gap: 12px;
 }
 
-input, button {
-  padding: 12px;
+input,
+button {
+  padding: 14px;
   font-size: 16px;
+  border-radius: 8px;
+}
+
+input {
+  border: 1px solid #ccc;
 }
 
 button {
   cursor: pointer;
   font-weight: bold;
+  border: none;
+  background: #222;
+  color: white;
 }
 
-#mensagem {
-  margin-top: 20px;
-  font-weight: bold;
-}
-.reservas-section {
-  margin-top: 30px;
+button:hover {
+  background: #444;
 }
 
-.reserva-card {
-  background: #f8f8f8;
-  border-left: 4px solid #333;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-}
-
-.reserva-card strong {
-  display: block;
-  margin-bottom: 5px;
-}
-
-
-
-/*comentario: O código CSS acima define o estilo para a página de reservas da Laje do Modesto. Ele inclui estilos para o corpo da página, contêineres, títulos, formulários, botões e uma seção de reservas. O layout é simples e limpo, com um foco em usabilidade e clareza.*/
+/* =========================================================
+   INDEX.HTML - HOME DO SITE
+========================================================= */
 
 .topo {
   position: fixed;
@@ -68,7 +74,6 @@ button {
   background: rgba(0, 0, 0, 0.65);
   color: white;
   z-index: 10;
-  box-sizing: border-box;
 }
 
 .topo h2 {
@@ -180,86 +185,31 @@ footer {
   padding: 20px;
 }
 
-@media (max-width: 800px) {
-  .topo nav {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+/* =========================================================
+   RESERVAS.HTML - FORMULÁRIO DE RESERVA
 }
 
-.topo nav a {
-    margin-left: 0;
-}
-  .hero-content h1 {
-    font-size: 42px;
-  }
-
-  .hero-content p {
-    font-size: 18px;
-  }
-
-  .diferenciais,
-  .grid-galeria {
-    grid-template-columns: 1fr;
-  }
-
-  .topo {
-    flex-direction: column;
-    gap: 10px;
-  }
-  @media (max-width: 480px) {
-
-  .hero-content h1 {
-    font-size: 32px;
-  }
-
-  .hero-content p {
-    font-size: 16px;
-  }
-
-  .btn-principal {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-}
+.reservas-section {
+  margin-top: 30px;
 }
 
-/* Botão flutuante do WhatsApp */
-
-.whatsapp-float {
-    position: fixed;
-    width: 65px;
-    height: 65px;
-
-    bottom: 25px;
-    right: 25px;
-
-    background: #25D366;
-    color: white;
-
-    border-radius: 50%;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    text-decoration: none;
-    font-size: 38px;
-
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-
-    z-index: 9999;
-
-    transition: all 0.3s ease;
+.reserva-card {
+  background: #f8f8f8;
+  border-left: 4px solid #333;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 8px;
 }
 
-.whatsapp-float:hover {
-    transform: scale(1.1);
-    box-shadow: 0 8px 25px rgba(37,211,102,0.5);
+.reserva-card strong {
+  display: block;
+  margin-bottom: 5px;
 }
-/*css da consulta de reserva*/
+
+/* =========================================================
+   CONSULTAR-RESERVA.HTML - ÁREA DO CLIENTE
+========================================================= */
+
 .painel-reserva {
   background: #ffffff;
   margin-top: 25px;
@@ -297,16 +247,244 @@ footer {
 
 .acoes-reserva button {
   flex: 1;
-  border: none;
-  border-radius: 8px;
 }
 
 .btn-cancelar {
   background: #c0392b;
-  color: white;
 }
 
 .btn-alterar {
   background: #222;
+}
+
+/* =========================================================
+   ADMIN-LOGIN.HTML - LOGIN ADMINISTRATIVO
+========================================================= */
+
+#mensagemLogin {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+/* =========================================================
+   ADMIN.HTML - PAINEL ADMINISTRATIVO
+========================================================= */
+
+.admin-container {
+  max-width: 1200px;
+}
+
+.btn-sair {
+  background: #c0392b;
+  margin-bottom: 20px;
+}
+
+.btn-sair:hover {
+  background: #a93226;
+}
+
+.admin-busca {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.dashboard-admin {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin: 25px 0;
+}
+
+.dashboard-card {
+  background: #111;
   color: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.dashboard-card h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.dashboard-card strong {
+  font-size: 32px;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 30px;
+}
+
+.admin-grid section {
+  background: #f7f7f7;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #ddd;
+}
+
+.admin-grid section h2 {
+  font-size: 20px;
+  margin-top: 0;
+  margin-bottom: 18px;
+  text-align: center;
+  color: #222;
+}
+
+.admin-grid .painel-reserva {
+  margin-top: 15px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.admin-grid .painel-reserva h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #111;
+}
+
+.admin-grid .painel-reserva p {
+  text-align: left;
+  margin: 8px 0;
+  color: #333;
+}
+
+.admin-grid .painel-reserva button {
+  margin-top: 10px;
+  margin-right: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+/* Cores dos status no admin.html */
+
+.admin-grid .painel-reserva.status-alteracao {
+  border-left: 6px solid #f1c40f;
+}
+
+.admin-grid .painel-reserva.status-cancelamento {
+  border-left: 6px solid #e74c3c;
+}
+
+.admin-grid .painel-reserva.status-confirmada {
+  border-left: 6px solid #2ecc71;
+}
+
+/* =========================================================
+   WHATSAPP FLUTUANTE - INDEX.HTML
+========================================================= */
+
+.whatsapp-float {
+  position: fixed;
+  width: 65px;
+  height: 65px;
+  bottom: 25px;
+  right: 25px;
+  background: #25D366;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 38px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  z-index: 9999;
+  transition: all 0.3s ease;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(37,211,102,0.5);
+}
+
+/* =========================================================
+   MOBILE - FOCO EM CELULAR
+========================================================= */
+
+@media (max-width: 700px) {
+  .container {
+    width: auto;
+    margin: 20px 12px;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  input,
+  button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .topo {
+    position: static;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .topo nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .topo nav a {
+    margin-left: 0;
+  }
+
+  .hero-content h1 {
+    font-size: 40px;
+  }
+
+  .hero-content p {
+    font-size: 18px;
+  }
+
+  .diferenciais,
+  .grid-galeria,
+  .admin-grid,
+  .dashboard-admin {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-galeria img {
+    height: 260px;
+  }
+
+  .acoes-reserva,
+  .admin-busca {
+    flex-direction: column;
+  }
+
+  .painel-reserva {
+    padding: 18px;
+  }
+
+  .linha-info {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .whatsapp-float {
+    width: 58px;
+    height: 58px;
+    font-size: 32px;
+    bottom: 18px;
+    right: 18px;
+  }
 }

@@ -3,37 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <title>Painel Administrativo</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
+<div class="container admin-container">
 
     <h1>Painel Administrativo</h1>
 
-    <div id="listaReservasAdmin">
+    <p id="usuarioLogado"></p>
 
-        <p>Carregando reservas...</p>
-
+    <div class="dashboard-admin">
+    <div class="dashboard-card">
+        <h3>Total</h3>
+        <strong id="totalReservas">0</strong>
     </div>
 
-    <div class="admin-grid">
-  <div>
-    <h2>Pendentes</h2>
-    <div id="reservasPendentes"></div>
-  </div>
+    <div class="dashboard-card">
+        <h3>Confirmadas</h3>
+        <strong id="totalConfirmadas">0</strong>
+    </div>
 
-  <div>
-    <h2>Alterações solicitadas</h2>
-    <div id="reservasAlteracao"></div>
-  </div>
+    <div class="dashboard-card">
+        <h3>Canceladas</h3>
+        <strong id="totalCanceladas">0</strong>
+    </div>
 
-  <div>
-    <h2>Cancelamentos solicitados</h2>
-    <div id="reservasCancelamento"></div>
-  </div>
+    <div class="dashboard-card">
+        <h3>Alterações</h3>
+        <strong id="totalAlteracoes">0</strong>
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Cancelamentos</h3>
+        <strong id="totalCancelamentos">0</strong>
+    </div>
 </div>
+
+    <button onclick="logoutAdmin()" class="btn-sair">
+    Sair
+    </button>
+
+<div class="admin-busca">
+    <input
+        type="text"
+        id="campoBuscaReserva"
+        placeholder="Buscar por código da reserva"
+    >
+
+    <button onclick="buscarReservaPorCodigo()">
+        Buscar
+    </button>
+
+    <button onclick="limparBuscaReserva()">
+        Limpar
+    </button>
+</div>
+
+    <div class="admin-grid">
+
+        <section>
+            <h2>Alterações solicitadas</h2>
+            <div id="reservasAlteracao">
+                <p>Carregando...</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Cancelamentos solicitados</h2>
+            <div id="reservasCancelamento">
+                <p>Carregando...</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Reservas confirmadas</h2>
+            <div id="reservasConfirmadas">
+                <p>Carregando...</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Outras reservas</h2>
+            <div id="reservasOutras">
+                <p>Carregando...</p>
+            </div>
+        </section>
+
+    </div>
 
 </div>
 

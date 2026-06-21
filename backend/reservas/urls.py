@@ -6,7 +6,11 @@ from .views import (
     ReservaViewSet,
     consultar_reserva,
     solicitar_cancelamento,
-    solicitar_alteracao
+    solicitar_alteracao,
+    aprovar_alteracao,
+    rejeitar_alteracao,
+    aprovar_cancelamento,
+    rejeitar_cancelamento
 )
 
 router = DefaultRouter()
@@ -30,5 +34,27 @@ urlpatterns = router.urls + [
         'solicitar-alteracao/',
         solicitar_alteracao,
         name='solicitar-alteracao'
+    ),
+
+    path(
+        'aprovar-alteracao/',
+        aprovar_alteracao,
+        name='aprovar-alteracao'
+    ),
+
+    path(
+        'rejeitar-alteracao/',
+        rejeitar_alteracao,
+        name='rejeitar-alteracao'
+    ),
+    path(
+        'aprovar-cancelamento/',
+        aprovar_cancelamento,
+        name='aprovar-cancelamento'
+    ),
+    path(
+        'rejeitar-cancelamento/',
+        rejeitar_cancelamento,
+        name='rejeitar-cancelamento'
     ),
 ]
