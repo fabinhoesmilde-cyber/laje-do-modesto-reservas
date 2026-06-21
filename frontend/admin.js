@@ -38,10 +38,38 @@ const campoBuscaReserva =
 document.getElementById(
     "campoBuscaReserva"
 );
+const totalReservas = document.getElementById("totalReservas");
+const totalConfirmadas = document.getElementById("totalConfirmadas");
+const totalCanceladas = document.getElementById("totalCanceladas");
+const totalAlteracoes = document.getElementById("totalAlteracoes");
+const totalCancelamentos = document.getElementById("totalCancelamentos");
+
 async function carregarReservas() {
     try {
         const resposta = await fetch(`${API_URL}/reservas/`);
         const reservas = await resposta.json();
+
+        const confirmadas = reservas.filter(
+    reserva => reserva.status_nome === "CONFIRMADA"
+);
+
+const canceladas = reservas.filter(
+    reserva => reserva.status_nome === "CANCELADA"
+);
+
+const alteracoes = reservas.filter(
+    reserva => reserva.status_nome === "ALTERACAO_SOLICITADA"
+);
+
+const cancelamentos = reservas.filter(
+    reserva => reserva.status_nome === "CANCELAMENTO_SOLICITADO"
+);
+
+totalReservas.textContent = reservas.length;
+totalConfirmadas.textContent = confirmadas.length;
+totalCanceladas.textContent = canceladas.length;
+totalAlteracoes.textContent = alteracoes.length;
+totalCancelamentos.textContent = cancelamentos.length;
 
         reservasAlteracao.innerHTML = "";
         reservasCancelamento.innerHTML = "";
