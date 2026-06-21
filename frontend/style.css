@@ -233,7 +233,12 @@ footer {
     transform: scale(1.1);
     box-shadow: 0 8px 25px rgba(37,211,102,0.5);
 }
-/*css da consulta de reserva*/
+/*css da consulta de reserva do admin */
+
+.admin-container {
+  max-width: 1200px;
+}
+
 .painel-reserva {
   background: #ffffff;
   margin-top: 25px;
@@ -283,4 +288,93 @@ footer {
 .btn-alterar {
   background: #222;
   color: white;
+}
+/* Painel administrativo */
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 30px;
+}
+
+.admin-grid section {
+  background: #f7f7f7;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #ddd;
+}
+
+.admin-grid section h2 {
+  font-size: 20px;
+  margin-top: 0;
+  margin-bottom: 18px;
+  text-align: center;
+  color: #222;
+}
+
+.admin-grid .painel-reserva {
+  margin-top: 15px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.admin-grid .painel-reserva h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #111;
+}
+
+.admin-grid .painel-reserva p {
+  text-align: left;
+  margin: 8px 0;
+  color: #333;
+}
+
+.admin-grid .painel-reserva button {
+  margin-top: 10px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #222;
+  color: white;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.admin-grid .painel-reserva button:hover {
+  background: #444;
+}
+
+@media (max-width: 900px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.btn-sair {
+  background: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.btn-sair:hover {
+  background: #a93226;
+}
+/* Cores dos status */
+
+.admin-grid .painel-reserva.status-alteracao {
+  border-left: 6px solid #f1c40f;
+}
+
+.admin-grid .painel-reserva.status-cancelamento {
+  border-left: 6px solid #e74c3c;
+}
+
+.admin-grid .painel-reserva.status-confirmada {
+  border-left: 6px solid #2ecc71;
 }
