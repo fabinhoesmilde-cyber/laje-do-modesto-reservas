@@ -1,0 +1,310 @@
+/* ===========================
+   WIZARD DE RESERVAS
+=========================== */
+
+body{
+    margin:0;
+    padding:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f5f7fa;
+}
+
+.wizard-container{
+    max-width:1100px;
+    margin:40px auto;
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+    overflow:hidden;
+}
+
+.wizard-header{
+    padding:35px;
+    background:#0d6efd;
+    color:white;
+}
+
+.wizard-header h1{
+    margin:0;
+}
+
+.wizard-header p{
+    margin-top:10px;
+    opacity:.9;
+}
+
+.progress-section{
+    padding:25px 35px;
+}
+
+.progress-info{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+    font-weight:bold;
+}
+
+.progress-bar{
+    width:100%;
+    height:10px;
+    background:#ddd;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-fill{
+    width:14%;
+    height:100%;
+    background:#0d6efd;
+    transition:.3s;
+}
+
+.reservation-summary{
+    margin:30px 35px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:25px;
+    background:#fafafa;
+}
+
+.reservation-summary h2{
+    margin-top:0;
+}
+
+.summary-item{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid #ececec;
+}
+
+.summary-item:last-child{
+    border:none;
+}
+
+.wizard-content{
+    padding:35px;
+    min-height:350px;
+}
+
+.step{
+    display:none;
+}
+
+.step.active{
+    display:block;
+}
+
+.step h2{
+    margin-top:0;
+    color:#0d6efd;
+}
+
+.wizard-footer{
+    display:flex;
+    justify-content:space-between;
+    padding:25px 35px;
+    border-top:1px solid #ddd;
+}
+
+.wizard-footer button{
+    padding:12px 28px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+    transition:.3s;
+}
+
+#btn-prev{
+    background:#6c757d;
+    color:white;
+}
+
+#btn-next{
+    background:#0d6efd;
+    color:white;
+}
+
+#btn-prev:hover{
+    background:#5a6268;
+}
+
+#btn-next:hover{
+    background:#0b5ed7;
+}
+
+
+@media(max-width:768px){
+
+    .wizard-container{
+        margin:15px;
+    }
+
+    .wizard-header,
+    .progress-section,
+    .wizard-content,
+    .wizard-footer{
+        padding:20px;
+    }
+
+    .progress-info{
+        flex-direction:column;
+        gap:8px;
+    }
+
+    .summary-item{
+        flex-direction:column;
+        gap:5px;
+    }
+
+    .wizard-footer{
+        flex-direction:column;
+        gap:15px;
+    }
+
+    .wizard-footer button{
+        width:100%;
+    }
+
+}
+/* ======================================
+   DATA SELECIONADA
+====================================== */
+
+.selected-day {
+
+    background: #dbeafe !important;
+
+    border-radius: 8px;
+
+    transition: .2s;
+
+}
+
+/* Dia disponível */
+
+.fc-daygrid-day {
+
+    cursor: pointer;
+
+    transition: .2s;
+
+}
+
+/* Hover */
+
+.fc-daygrid-day:hover {
+
+    background: #eef6ff;
+
+}
+
+/* ======================================
+   HORÁRIOS
+====================================== */
+
+#horarios-container{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+
+    gap:15px;
+
+    margin-top:25px;
+
+}
+
+.horario-card{
+
+    padding:18px;
+
+    border:2px solid #ddd;
+
+    border-radius:10px;
+
+    text-align:center;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    font-weight:bold;
+
+}
+
+.horario-card:hover{
+
+    border-color:#0d6efd;
+
+    background:#eef6ff;
+
+}
+
+.horario-card.selected{
+
+    background:#0d6efd;
+
+    color:white;
+
+    border-color:#0d6efd;
+
+}
+
+.horario-card.disabled{
+
+    background:#ececec;
+
+    color:#999;
+
+    cursor:not-allowed;
+
+}
+/* ======================================
+   HORAS EXTRAS
+====================================== */
+
+#horas-extras-container{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+
+    gap:15px;
+
+    margin-top:20px;
+
+}
+
+.hora-extra-card{
+
+    padding:18px;
+
+    border:2px solid #ddd;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    text-align:center;
+
+    transition:.25s;
+
+}
+
+.hora-extra-card:hover{
+
+    border-color:#0d6efd;
+
+}
+
+.hora-extra-card.selected{
+
+    background:#0d6efd;
+
+    color:white;
+
+    border-color:#0d6efd;
+
+}

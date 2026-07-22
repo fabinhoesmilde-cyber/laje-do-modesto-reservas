@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'pagamentos',
     'cupons',
     'adicionais',
+    'configuracoes',
 ]
 
 MIDDLEWARE = [
