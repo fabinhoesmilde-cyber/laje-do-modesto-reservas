@@ -1,100 +1,441 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+
     <meta charset="UTF-8">
     <title>Painel Administrativo</title>
-    <link rel="stylesheet" href="../css/style.css">
-</head>
-<body>
 
-<div class="container admin-container">
+    <link rel="stylesheet" href="../css/admin.css">
 
-    <h1>Painel Administrativo</h1>
-
-    <p id="usuarioLogado"></p>
-
-    <div class="dashboard-admin">
-    <div class="dashboard-card">
-        <h3>Total</h3>
-        <strong id="totalReservas">0</strong>
-    </div>
-
-    <div class="dashboard-card">
-        <h3>Confirmadas</h3>
-        <strong id="totalConfirmadas">0</strong>
-    </div>
-
-    <div class="dashboard-card">
-        <h3>Canceladas</h3>
-        <strong id="totalCanceladas">0</strong>
-    </div>
-
-    <div class="dashboard-card">
-        <h3>Alterações</h3>
-        <strong id="totalAlteracoes">0</strong>
-    </div>
-
-    <div class="dashboard-card">
-        <h3>Cancelamentos</h3>
-        <strong id="totalCancelamentos">0</strong>
-    </div>
-</div>
-
-    <button onclick="logoutAdmin()" class="btn-sair">
-    Sair
-    </button>
-
-<div class="admin-busca">
-    <input
-        type="text"
-        id="campoBuscaReserva"
-        placeholder="Buscar por código da reserva"
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
     >
 
-    <button onclick="buscarReservaPorCodigo()">
-        Buscar
-    </button>
+</head>
 
-    <button onclick="limparBuscaReserva()">
-        Limpar
-    </button>
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <h2>Laje do Modesto</h2>
+
+        <nav>
+
+            <a href="admin.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+
+            <a href="#reservas"><i class="fa-solid fa-calendar-days"></i> Reservas</a>
+
+            <a href="admin-agenda.html"> <i class="fa-solid fa-calendar-week"></i> Agenda</a>
+
+            <a href="#" onclick="abrirModalClientes(); return false;"><i class="fa-solid fa-users"></i> Clientes</a>
+
+            <a href="#"><i class="fa-solid fa-chart-column"></i> Relatórios</a>
+
+            <a href="#" onclick="abrirConfiguracoes(); return false;"><i class="fa-solid fa-gear"></i> Configurações</a>
+
+        </nav>
+
+        <button
+            onclick="logoutAdmin()"
+            class="btn-sair"
+        >
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Sair
+        </button>
+
+    </aside>
+
+    <!-- CONTEÚDO -->
+    <main class="conteudo">
+
+        <!-- TOPO -->
+        <header class="topo">
+
+            <div>
+
+                <span class="subtitulo">
+                    Bem-vindo ao painel
+                </span>
+
+                <h1>Painel Administrativo</h1>
+
+                <p id="usuarioLogado"></p>
+
+            </div>
+
+            <div class="acoes-topo">
+
+                <button class="btn-nova-reserva">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Nova Reserva
+
+                </button>
+
+            </div>
+
+        </header>
+
+        <!-- DASHBOARD -->
+
+        <section class="dashboard-admin">
+
+            <div class="dashboard-card" data-status="TODAS">
+
+                <i class="fa-solid fa-calendar-days"></i>
+
+                <span>Total Reservas</span>
+
+                <strong id="totalReservas">0</strong>
+
+            </div>
+
+            <div class="dashboard-card" data-status="CONFIRMADA">
+
+                <i class="fa-solid fa-circle-check"></i>
+
+                <span>Confirmadas</span>
+
+                <strong id="totalConfirmadas">0</strong>
+
+            </div>
+
+            <div class="dashboard-card" data-status="CANCELADA">
+
+                <i class="fa-solid fa-ban"></i>
+
+                <span>Canceladas</span>
+
+                <strong id="totalCanceladas">0</strong>
+
+            </div>
+
+            <div class="dashboard-card" data-status="ALTERACAO_SOLICITADA">
+
+                <i class="fa-solid fa-arrows-rotate"></i>
+
+                <span>Alterações</span>
+
+                <strong id="totalAlteracoes">0</strong>
+
+            </div>
+
+            <div class="dashboard-card" data-status="CANCELAMENTO_SOLICITADO">
+
+                <i class="fa-solid fa-triangle-exclamation"></i>
+
+                <span>Cancelamentos</span>
+
+                <strong id="totalCancelamentos">0</strong>
+
+            </div>
+
+        </section>
+
+        <!-- PRÓXIMA RESERVA -->
+
+        <section class="proxima-reserva">
+
+            <div class="proxima-reserva-titulo">
+
+                <div>
+
+                    <span class="subtitulo">
+                        Próximo evento
+                    </span>
+
+                    <h2>
+                        <i class="fa-solid fa-calendar-check"></i>
+                        Próxima Reserva
+                    </h2>
+
+                </div>
+
+            </div>
+
+            <div id="conteudoProximaReserva">
+
+                <div class="sem-proxima-reserva">
+
+                    <i class="fa-solid fa-calendar-xmark"></i>
+
+                    <p>
+                        Carregando próxima reserva...
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- TÍTULO -->
+
+        <div class="titulo-secao">
+
+            <h2>Reservas</h2>
+
+            <p>Gerencie todas as reservas cadastradas.</p>
+
+        </div>
+
+        <!-- BUSCA -->
+
+        <section class="admin-busca">
+
+            <input
+                type="text"
+                id="campoBuscaReserva"
+                placeholder="Buscar por código da reserva..."
+            >
+
+            <button onclick="buscarReservaPorCodigo()">
+
+                Buscar
+
+            </button>
+
+            <button onclick="limparBuscaReserva()">
+
+                Limpar
+
+            </button>
+
+        </section>
+
+        <!-- LISTA -->
+
+        <section id="reservas" class="lista-reservas">
+
+            <div class="filtros-status">
+
+                <button class="filtro ativo" data-status="TODAS">
+                    Todas
+                </button>
+
+                <button class="filtro" data-status="CONFIRMADA">
+                    Confirmadas
+                </button>
+
+                <button class="filtro" data-status="ALTERACAO_SOLICITADA">
+                    Alterações
+                </button>
+
+                <button class="filtro" data-status="CANCELAMENTO_SOLICITADO">
+                    Cancelamentos
+                </button>
+
+                <button class="filtro" data-status="CANCELADA">
+                    Canceladas
+                </button>
+
+            </div>
+
+            <div id="listaReservas"></div>
+
+        </section>
+
+    </main>
+
 </div>
 
-    <div class="admin-grid">
+<!-- MODAL -->
 
-        <section>
-            <h2>Alterações solicitadas</h2>
-            <div id="reservasAlteracao">
-                <p>Carregando...</p>
-            </div>
-        </section>
+<div id="modalReserva" class="modal">
 
-        <section>
-            <h2>Cancelamentos solicitados</h2>
-            <div id="reservasCancelamento">
-                <p>Carregando...</p>
-            </div>
-        </section>
+    <div class="modal-conteudo">
 
-        <section>
-            <h2>Reservas confirmadas</h2>
-            <div id="reservasConfirmadas">
-                <p>Carregando...</p>
-            </div>
-        </section>
+        <span id="fecharModal" class="fechar">&times;</span>
 
-        <section>
-            <h2>Outras reservas</h2>
-            <div id="reservasOutras">
-                <p>Carregando...</p>
+        <div id="conteudoModal">
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MODAL DE CLIENTES -->
+
+<div id="modalClientes" class="modal">
+
+    <div class="modal-conteudo modal-clientes">
+
+        <span
+            id="fecharModalClientes"
+            class="fechar"
+            onclick="fecharModalClientes()"
+        >
+            &times;
+        </span>
+
+        <div class="cabecalho-modal">
+
+            <div>
+
+                <span class="modal-subtitulo">
+                    Administração
+                </span>
+
+                <h2>
+                    👥 Clientes
+                </h2>
+
             </div>
-        </section>
+
+        </div>
+
+<div class="conteudo-clientes">
+
+    <div class="busca-clientes">
+
+        <input
+            type="text"
+            id="campoBuscaCliente"
+            placeholder="Buscar por nome, CPF ou telefone..."
+        >
+
+        <button onclick="buscarClientes()">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            Buscar
+        </button>
+
+    </div>
+
+    <div id="resultadoClientes">
+
+        <p class="mensagem-clientes">
+            Digite o nome, CPF ou telefone do cliente.
+        </p>
+
+    </div>
+
+</div>
+
+    </div>
+
+</div>
+
+<div id="modalConfiguracoes" class="modal">
+
+    <div class="modal-conteudo modal-configuracoes">
+
+        <span
+            class="fechar"
+            onclick="fecharConfiguracoes()"
+        >
+            &times;
+        </span>
+
+        <div id="conteudoConfiguracoes">
+
+            <div class="cabecalho-configuracoes">
+
+                <span class="modal-subtitulo">
+                    Administração
+                </span>
+
+                <h2>
+                    <i class="fa-solid fa-gear"></i>
+                    Configurações
+                </h2>
+
+                <p>
+                    Gerencie as configurações da Laje do Modesto.
+                </p>
+
+            </div>
+
+            <div class="grid-configuracoes">
+
+            <button
+                class="card-configuracao"
+                onclick="abrirInformacoesLaje()"
+            >
+                <i class="fa-solid fa-house"></i>
+
+                <div>
+                    <strong>Informações da Laje</strong>
+                    <span>Nome, telefone, e-mail e endereço</span>
+                </div>
+            </button>
+
+            <button
+                class="card-configuracao"
+                onclick="abrirValoresReserva()"
+            >
+                <i class="fa-solid fa-money-bill-wave"></i>
+
+                <div>
+                    <strong>Valores da Reserva</strong>
+                    <span>Valor base e hora extra</span>
+                </div>
+            </button>
+
+                <button class="card-configuracao">
+                    <i class="fa-solid fa-clock"></i>
+
+                    <div>
+                        <strong>Horários</strong>
+                        <span>Configure os horários das reservas</span>
+                    </div>
+                </button>
+
+
+                <button
+                    class="card-configuracao"
+                    onclick="abrirDiasBloqueados()"
+                >
+                    <i class="fa-solid fa-calendar-xmark"></i>
+
+                    <div>
+                        <strong>Dias Bloqueados</strong>
+                        <span>Gerencie datas indisponíveis</span>
+                    </div>
+                </button>
+
+
+                <button
+                    class="card-configuracao"
+                    onclick="abrirAdicionais()"
+                >
+                    <i class="fa-solid fa-champagne-glasses"></i>
+
+                    <div>
+                        <strong>Adicionais</strong>
+                        <span>Crie e gerencie serviços adicionais</span>
+                    </div>
+                </button>
+
+                <button
+                    class="card-configuracao"
+                    onclick="abrirCupons()"
+                >
+                    <i class="fa-solid fa-ticket"></i>
+
+                    <div>
+                        <strong>Cupons</strong>
+                        <span>Crie e gerencie cupons de desconto</span>
+                    </div>
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
 
 </div>
 
 <script src="../js/admin.js"></script>
+<script src="../js/modal-reserva.js"></script>
 
 </body>
+
 </html>

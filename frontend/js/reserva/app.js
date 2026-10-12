@@ -11,15 +11,22 @@ class App {
 
             reserva.setConfiguracoes(configuracoes);
 
-            console.log("Configurações carregadas com sucesso!");
+            const adicionais =
+                await adicionalService.carregarAdicionais();
 
-            console.log(reserva.getConfiguracoes());
+            reserva.setAdicionaisDisponiveis(adicionais);
+
+            console.log("Adicionais:");
+
+            console.table(adicionais);
+
+            console.log("Sistema iniciado com sucesso!");
 
         } catch (erro) {
 
             console.error(erro);
 
-            alert("Erro ao carregar as configurações do sistema.");
+            alert("Erro ao iniciar o sistema.");
 
         }
 

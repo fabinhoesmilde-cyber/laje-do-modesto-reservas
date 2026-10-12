@@ -6,9 +6,49 @@ document.addEventListener("DOMContentLoaded", iniciarCalendario);
 
 let calendar;
 
+let datasBloqueadas = [];
+
 // ======================================
 
-function iniciarCalendario() {
+// ======================================
+// CARREGA DATAS BLOQUEADAS
+// ======================================
+
+async function carregarDatasBloqueadas() {
+
+    try {
+
+        const resposta = await fetch(
+            "http://127.0.0.1:8000/api/reservas/"
+        );
+
+        if (!resposta.ok) {
+
+            throw new Error("Erro ao carregar reservas.");
+
+        }
+
+        const reservas = await resposta.json();
+
+        datasBloqueadas = reservas
+            .filter(reserva => reserva.status_nome !== "CANCELADA")
+            .map(reserva => reserva.data_reserva);
+
+        console.log("Datas bloqueadas:");
+
+        console.table(datasBloqueadas);
+
+    } catch (erro) {
+
+        console.error(erro);
+
+    }
+
+}
+
+// ======================================
+
+async function iniciarCalendario() {
 
     const calendarEl = document.getElementById("calendar-container");
 
@@ -19,6 +59,8 @@ function iniciarCalendario() {
         return;
 
     }
+
+    await carregarDatasBloqueadas();
 
     calendar = new FullCalendar.Calendar(calendarEl, {
 
@@ -52,7 +94,19 @@ function iniciarCalendario() {
 
         },
 
-        dateClick: selecionarData
+dayCellDidMount: function(info) {
+
+    const data = info.date.toISOString().split("T")[0];
+
+    if (datasBloqueadas.includes(data)) {
+
+        info.el.classList.add("dia-bloqueado");
+
+    }
+
+},
+
+dateClick: selecionarData
 
     });
 

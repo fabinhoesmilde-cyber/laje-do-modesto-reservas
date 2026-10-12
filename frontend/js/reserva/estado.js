@@ -12,6 +12,10 @@ class ReservaState {
 
     }
 
+    // ============================
+    // RESET
+    // ============================
+
     reset() {
 
         this.data = null;
@@ -22,7 +26,12 @@ class ReservaState {
 
         this.maxHorasExtras = 0;
 
-        this.adicionais = [];
+        this.adicionais = {
+
+            disponiveis: [],
+            selecionados: []
+
+        };
 
         this.cliente = {
 
@@ -43,11 +52,8 @@ class ReservaState {
         this.configuracoes = {
 
             valorReserva: 0,
-
             valorHoraExtra: 0,
-
             duracaoReserva: 0,
-
             horarioLimite: ""
 
         };
@@ -110,63 +116,160 @@ class ReservaState {
 
     }
 
-// ============================
-// MÁXIMO DE HORAS EXTRAS
-// ============================
+    // ============================
+    // LIMITE DE HORAS EXTRAS
+    // ============================
 
-setMaxHorasExtras(valor) {
+    setMaxHorasExtras(valor) {
 
-    this.maxHorasExtras = valor;
-
-    this.notify();
-
-}
-
-getMaxHorasExtras() {
-
-    return this.maxHorasExtras;
-
-}
-
-// ============================
-// CONFIGURAÇÕES
-// ============================
-
-    setConfiguracoes(configuracoes) {
-
-        this.configuracoes = {
-
-            valorReserva: Number(configuracoes.valor_reserva),
-
-            valorHoraExtra: Number(configuracoes.valor_hora_extra),
-
-            duracaoReserva: configuracoes.duracao_reserva,
-
-            horarioLimite: configuracoes.horario_limite
-
-        };
+        this.maxHorasExtras = valor;
 
         this.notify();
 
     }
 
-getConfiguracoes() {
+    getMaxHorasExtras() {
 
-    return this.configuracoes;
+        return this.maxHorasExtras;
+
+    }
+
+// ============================
+// ADICIONAIS
+// ============================
+
+    setAdicionaisDisponiveis(adicionais) {
+
+        this.adicionais.disponiveis = adicionais;
+
+        this.notify();
+
+    }
+
+    getAdicionaisDisponiveis() {
+
+        return this.adicionais.disponiveis;
+
+    }
+
+    getAdicionaisSelecionados() {
+
+        return this.adicionais.selecionados;
+
+    }
+
+    adicionarAdicional(adicional) {
+
+        const existe =
+            this.adicionais.selecionados.some(item => item.id === adicional.id);
+
+        if (!existe) {
+
+            this.adicionais.selecionados.push(adicional);
+
+            this.notify();
+
+        }
+
+    }
+
+    removerAdicional(id) {
+
+        this.adicionais.selecionados =
+            this.adicionais.selecionados.filter(item => item.id !== id);
+
+        this.notify();
+
+    }
+
+    // ============================
+    // CONFIGURAÇÕES
+    // ============================
+
+setConfiguracoes(configuracoes) {
+
+    this.configuracoes = {
+
+        valorReserva: Number(
+            configuracoes.valor_base ??
+            configuracoes.valor_reserva ??
+            0
+        ),
+
+        valorHoraExtra: Number(
+            configuracoes.valor_hora_extra ??
+            0
+        ),
+
+        duracaoReserva:
+            configuracoes.duracao_reserva ?? 8,
+
+        horarioLimite:
+            configuracoes.horario_limite ?? 29
+
+    };
+
+    this.notify();
 
 }
+
+    getConfiguracoes() {
+
+        return this.configuracoes;
+
+    }
+
+    // ============================
+    // CLIENTE
+    // ============================
+
+    setCliente(cliente) {
+
+        this.cliente = cliente;
+
+        this.notify();
+
+    }
+
+    getCliente() {
+
+        return this.cliente;
+
+    }
+
+    // ============================
+    // PAGAMENTO
+    // ============================
+
+    setPagamento(pagamento) {
+
+        this.pagamento = pagamento;
+
+        this.notify();
+
+    }
+
+    getPagamento() {
+
+        return this.pagamento;
+
+    }
+
+    // ============================
+    // OBSERVER
+    // ============================
 
     addListener(callback) {
 
-    this.listeners.push(callback);
+        this.listeners.push(callback);
 
-}
+    }
 
-notify() {
+    notify() {
 
-    this.listeners.forEach(callback => callback(this));
+        this.listeners.forEach(callback => callback(this));
 
-}
+    }
 
 }
 

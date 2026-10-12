@@ -6,6 +6,12 @@ from rest_framework.decorators import permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
+from datetime import datetime, timedelta
+
+from clientes.models import Cliente
+from adicionais.models import Adicional
+from .models import ReservaAdicional
+
 from .models import StatusReserva, Reserva
 from .serializers import StatusReservaSerializer, ReservaSerializer
 
@@ -348,3 +354,143 @@ def rejeitar_cancelamento(request):
         'codigo_reserva': reserva.codigo_reserva,
         'status': reserva.status.nome
     })
+
+@api_view(['POST'])
+def criar_reserva(request):
+
+    dados = request.data
+
+    try:
+
+        cliente, _ = Cliente.objects.get_or_create(
+            cpf=dados["cpf"],
+            defaults={
+                "nome": dados["nome"],
+                "telefone": dados["telefone"],
+                "email": dados["email"]
+
+            }
+        )
+
+        status = StatusReserva.objects.get(
+            nome="CONFIRMADA"
+        )
+
+        data = datetime.strptime(
+            dados["data"],
+            "%Y-%m-%d"
+        ).date()
+
+        hora_inicio = datetime.strptime(
+            dados["hora_inicio"],
+            "%H:%M"
+        )
+
+        duracao = int(dados["duracao"])
+
+        horas_extras = int(
+            dados.get("horas_extras", 0)
+)
+
+        hora_fim = (
+            hora_inicio +
+            timedelta(hours=duracao)
+        ).time()
+
+
+
+        conflito = Reserva.objects.filter(
+            data_reserva=data,
+            hora_inicio__lt=hora_fim,
+            hora_fim__gt=hora_inicio.time()
+        ).exists()
+
+        if conflito:
+
+            return Response(
+                {
+                    "erro": "Já existe uma reserva neste horário."
+                },
+                status=400
+            )
+
+        reserva = Reserva.objects.create(
+
+            cliente=cliente,
+
+            status=status,
+
+            data_reserva=data,
+
+            hora_inicio=hora_inicio.time(),
+
+            hora_fim=hora_fim,
+
+            valor_base=dados["valor_reserva"],
+
+            valor_desconto=dados["desconto"],
+
+            valor_adicionais=dados["valor_adicionais"],
+
+            valor_total=dados["total"],
+
+            horas_extras=horas_extras,
+
+        )
+        print(dados["adicionais"])
+
+
+        for item in dados["adicionais"]:
+
+            adicional = Adicional.objects.filter(
+                id=item["id"],
+                ativo=True
+            ).first()
+
+            if not adicional:
+                return Response(
+                    {
+                        "erro": (
+                            f"O adicional com ID {item.get('id')} "
+                            "não existe ou está inativo."
+                        )
+                    },
+                    status=400
+                )
+
+
+            ReservaAdicional.objects.create(
+
+                reserva=reserva,
+
+                adicional=adicional,
+
+                quantidade=1,
+
+                valor_unitario_momento=adicional.valor,
+
+                valor_total=adicional.valor
+
+            )
+
+        return Response({
+
+            "sucesso": True,
+
+            "codigo_reserva": reserva.codigo_reserva
+
+        })
+
+    except Exception as erro:
+
+        return Response(
+
+            {
+
+                "erro": str(erro)
+
+            },
+
+            status=400
+
+        )

@@ -31,16 +31,42 @@ class ReservaService {
      */
     calcularResumo() {
 
-        const configuracoes = reserva.getConfiguracoes();
+        const configuracoes = reserva.getConfiguracoes() || {};
 
-        const valorReserva = configuracoes.valorReserva;
+        const horasExtras = Number(reserva.getHorasExtras()) || 0;
+
+        // Aceita snake_case ou camelCase
+        const duracaoPadrao =
+            Number(configuracoes.duracao_reserva ??
+                   configuracoes.duracaoReserva ?? 8);
+
+        const valorReserva =
+            Number(
+                configuracoes.valor_base ??
+                configuracoes.valorBase ??
+                configuracoes.valor_reserva ??
+                configuracoes.valorReserva ??
+                0
+            );
+
+        const valorHoraExtra =
+            Number(configuracoes.valor_hora_extra ??
+                   configuracoes.valorHoraExtra ?? 0);
+
+        const duracao = duracaoPadrao + horasExtras;
 
         const valorHorasExtras =
-            reserva.getHorasExtras() *
-            configuracoes.valorHoraExtra;
+            horasExtras * valorHoraExtra;
 
-        // Ainda vamos implementar
-        const valorAdicionais = 0;
+        const valorAdicionais =
+            reserva
+                .getAdicionaisSelecionados()
+                .reduce((total, adicional) => {
+
+                    return total + Number(adicional.valor);
+
+                }, 0);
+
         const desconto = 0;
 
         const subtotal =
@@ -53,11 +79,18 @@ class ReservaService {
 
         return {
 
+            duracao,
+
             valorReserva,
+
             valorHorasExtras,
+
             valorAdicionais,
+
             desconto,
+
             subtotal,
+
             total
 
         };

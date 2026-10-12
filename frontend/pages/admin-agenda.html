@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Agenda do Administrador</title>
+
+    <link rel="stylesheet" href="../css/admin.css">
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css"
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+
+</head>
+
+<body>
+
+<div class="container agenda-container">
+
+    <div class="agenda-topo">
+
+        <div>
+            <span class="agenda-subtitulo">
+                Gerenciamento
+            </span>
+
+            <h1>
+                <i class="fa-solid fa-calendar-days"></i>
+                Agenda Laje do Modesto
+            </h1>
+
+            <p>
+                Visualize e gerencie as reservas da Laje do Modesto.
+            </p>
+        </div>
+
+        <button class="btn-voltar" onclick="voltarPainel()">
+            <i class="fa-solid fa-arrow-left"></i>
+            Voltar
+        </button>
+
+    </div>
+
+    <div class="agenda-card">
+
+        <div id="admin-calendar"></div>
+
+    </div>
+
+</div>
+
+    </div>
+
+    <div id="modalReserva" class="modal">
+
+        <div class="modal-conteudo">
+
+            <span
+                id="fecharModal"
+                class="fechar"
+                onclick="fecharModal()"
+            >
+                &times;
+            </span>
+
+            <div id="conteudoModal"></div>
+
+        </div>
+
+    </div>
+
+    <script src="../js/modal-reserva.js"></script>
+
+    <script src="../js/admin-agenda.js"></script>
+
+</body>
+
+</html>

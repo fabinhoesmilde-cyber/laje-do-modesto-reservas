@@ -39,6 +39,22 @@ document.addEventListener("DOMContentLoaded", () => {
     btnNext.addEventListener("click", avancarEtapa);
     btnPrev.addEventListener("click", voltarEtapa);
 
+    const btnNovaReserva = document.getElementById("btn-nova-reserva");
+
+    if (btnNovaReserva) {
+
+        btnNovaReserva.addEventListener("click", () => {
+
+            fecharSucesso();
+
+            // Volta para o início do wizard
+            currentStep = 0;
+            updateWizard();
+
+        });
+
+    }
+
     updateWizard();
 
 });
@@ -93,10 +109,9 @@ function validarEtapaAtual() {
 
         case 0:
 
-            if(!reserva.getData()) {
+            if (!reserva.getData()) {
 
                 alert("Selecione uma data para continuar.");
-
                 return false;
 
             }
@@ -105,31 +120,46 @@ function validarEtapaAtual() {
 
         case 1:
 
-            // Validação do horário virá depois
+            if (!reserva.getHorario()) {
+
+                alert("Selecione um horário para continuar.");
+                return false;
+
+            }
 
             break;
 
         case 2:
 
-            // Horas adicionais
-
+            // Horas extras
             break;
 
         case 3:
 
             // Adicionais
-
             break;
 
         case 4:
 
-            // Dados do cliente
+            if (!cliente.mostrarErros()) {
+
+                alert("Preencha corretamente os dados do cliente.");
+                return false;
+
+            }
 
             break;
 
         case 5:
 
-            // Termos
+            const aceitou = document.getElementById("aceitar-termos");
+
+            if (!aceitou.checked) {
+
+                alert("Você deve aceitar os termos da locação.");
+                return false;
+
+            }
 
             break;
 
@@ -140,7 +170,7 @@ function validarEtapaAtual() {
 }
 
 // ===============================
-// Atualiza interface
+// Atualiza Interface
 // ===============================
 
 function updateWizard() {
@@ -153,15 +183,26 @@ function updateWizard() {
 
     steps[currentStep].classList.add("active");
 
-    stepNumber.textContent = `Etapa ${currentStep + 1} de ${steps.length}`;
+    if (currentStep === 6 && typeof resumoFinal !== "undefined") {
 
-    stepTitle.textContent = titles[currentStep];
+        resumoFinal.atualizar();
 
-    const porcentagem = ((currentStep + 1) / steps.length) * 100;
+    }
 
-    progressFill.style.width = porcentagem + "%";
+    stepNumber.textContent =
+        `Etapa ${currentStep + 1} de ${steps.length}`;
 
-    btnPrev.style.visibility = currentStep === 0 ? "hidden" : "visible";
+    stepTitle.textContent =
+        titles[currentStep];
+
+    const porcentagem =
+        ((currentStep + 1) / steps.length) * 100;
+
+    progressFill.style.width =
+        porcentagem + "%";
+
+    btnPrev.style.visibility =
+        currentStep === 0 ? "hidden" : "visible";
 
     if (currentStep === steps.length - 1) {
 
@@ -176,15 +217,108 @@ function updateWizard() {
 }
 
 // ===============================
-// Finalizar
+// Finalizar Reserva
 // ===============================
 
-function finalizarReserva() {
+async function finalizarReserva() {
 
-    console.log("Reserva pronta para envio:");
+    const resumo = reservaService.calcularResumo();
+    const cliente = reserva.getCliente();
 
-    console.log(reserva);
+    const dados = {
 
-    alert("Em breve enviaremos os dados para o Django.");
+        nome: cliente.nome,
+        cpf: cliente.cpf,
+        telefone: cliente.telefone,
+        email: cliente.email,
+        convidados: cliente.convidados,
+
+        data: reserva.getData(),
+        hora_inicio: reserva.getHorario(),
+        duracao: resumo.duracao,
+
+        horas_extras: reserva.getHorasExtras(),
+
+        valor_reserva: resumo.valorReserva,
+        valor_adicionais: resumo.valorAdicionais,
+        desconto: resumo.desconto,
+        total: resumo.total,
+
+        adicionais: reserva.getAdicionaisSelecionados().map(a => ({
+            id: a.id
+        }))
+
+    };
+
+    try {
+
+        const resposta = await fetch(
+            "http://127.0.0.1:8000/api/criar-reserva/",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(dados)
+            }
+        );
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+
+            alert(resultado.erro || "Erro ao criar reserva.");
+            return;
+
+        }
+
+        mostrarSucesso(resultado.codigo_reserva);
+
+        console.log(resultado);
+
+    } catch (erro) {
+
+        console.error(erro);
+
+        alert("Não foi possível conectar ao servidor.");
+
+    }
+
+}
+
+// ===============================
+// Modal de Sucesso
+// ===============================
+
+function mostrarSucesso(codigo) {
+
+    const modal = document.getElementById("modal-sucesso");
+
+    if (!modal) {
+
+        alert(`Reserva criada com sucesso!\n\nCódigo: ${codigo}`);
+        return;
+
+    }
+
+    document.getElementById("codigo-reserva").textContent = codigo;
+
+    modal.style.display = "flex";
+
+}
+
+// ===============================
+// Fechar Modal
+// ===============================
+
+function fecharSucesso() {
+
+    const modal = document.getElementById("modal-sucesso");
+
+    if (modal) {
+
+        modal.style.display = "none";
+
+    }
 
 }

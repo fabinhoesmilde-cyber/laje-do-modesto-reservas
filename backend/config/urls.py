@@ -29,6 +29,21 @@ urlpatterns = [
     path('api/', include('adicionais.urls')),
     path('api/', include('pagamentos.urls')),
 
-    # NOVA ROTA
-    path('api/configuracoes/', include('configuracoes.urls')),
+    # App antiga de configurações
+    path(
+        'api/configuracoes/',
+        include('configuracoes.urls')
+    ),
+
+    # Valores da reserva
+    path(
+        "api/configuracao-laje/",
+        include("configuracao_laje.urls")
+    ),
+    # Dias bloqueados
+    path(
+        "api/dias-bloqueados/",
+        include("dias_bloqueados.urls")
+    ),
+
 ]
