@@ -8,4 +8,5 @@ class ConfiguracaoAPIView(RetrieveAPIView):
     serializer_class = ConfiguracaoSerializer
 
     def get_object(self):
-        return Configuracao.objects.first()
+        configuracao, created = Configuracao.objects.get_or_create(pk=1)
+        return configuracao

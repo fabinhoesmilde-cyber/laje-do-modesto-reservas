@@ -1,8 +1,13 @@
-// ======================================
-// REGRAS DE NEGÓCIO DA RESERVA
-// ======================================
+
+ // ======================================
+ // REGRAS DE NEGÓCIO DA RESERVA
+ // ======================================
 
 class ReservaService {
+
+    constructor() {
+        this.cupomAplicado = null;
+    }
 
     /**
      * Calcula quantas horas extras
@@ -15,15 +20,31 @@ class ReservaService {
         }
 
         const horaInicio = parseInt(horario.split(":")[0], 10);
-
-        // Reserva padrão possui 8 horas
         const horaFim = horaInicio + 8;
-
-        // 05:00 do dia seguinte
         const limite = 29;
 
         return Math.max(0, limite - horaFim);
+    }
 
+    /**
+     * Guarda o cupom validado pelo backend.
+     */
+    aplicarCupom(cupom) {
+        this.cupomAplicado = cupom;
+    }
+
+    /**
+     * Remove o cupom aplicado.
+     */
+    removerCupom() {
+        this.cupomAplicado = null;
+    }
+
+    /**
+     * Retorna o cupom aplicado.
+     */
+    getCupomAplicado() {
+        return this.cupomAplicado;
     }
 
     /**
@@ -32,13 +53,13 @@ class ReservaService {
     calcularResumo() {
 
         const configuracoes = reserva.getConfiguracoes() || {};
-
         const horasExtras = Number(reserva.getHorasExtras()) || 0;
 
-        // Aceita snake_case ou camelCase
         const duracaoPadrao =
-            Number(configuracoes.duracao_reserva ??
-                   configuracoes.duracaoReserva ?? 8);
+            Number(
+                configuracoes.duracao_reserva ??
+                configuracoes.duracaoReserva ?? 8
+            );
 
         const valorReserva =
             Number(
@@ -50,53 +71,43 @@ class ReservaService {
             );
 
         const valorHoraExtra =
-            Number(configuracoes.valor_hora_extra ??
-                   configuracoes.valorHoraExtra ?? 0);
+            Number(
+                configuracoes.valor_hora_extra ??
+                configuracoes.valorHoraExtra ?? 0
+            );
 
         const duracao = duracaoPadrao + horasExtras;
 
-        const valorHorasExtras =
-            horasExtras * valorHoraExtra;
+        const valorHorasExtras = horasExtras * valorHoraExtra;
 
         const valorAdicionais =
-            reserva
-                .getAdicionaisSelecionados()
+            reserva.getAdicionaisSelecionados()
                 .reduce((total, adicional) => {
-
                     return total + Number(adicional.valor);
-
                 }, 0);
-
-        const desconto = 0;
 
         const subtotal =
             valorReserva +
             valorHorasExtras +
             valorAdicionais;
 
-        const total =
-            subtotal - desconto;
+        const desconto =
+            this.cupomAplicado
+                ? Number(this.cupomAplicado.valor_desconto) || 0
+                : 0;
+
+        const total = Math.max(0, subtotal - desconto);
 
         return {
-
             duracao,
-
             valorReserva,
-
             valorHorasExtras,
-
             valorAdicionais,
-
             desconto,
-
             subtotal,
-
             total
-
         };
-
     }
-
 }
 
 const reservaService = new ReservaService();

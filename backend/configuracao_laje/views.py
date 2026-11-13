@@ -1,12 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
+
+from config.permissions import IsAdminOrReadOnly
 
 from .models import ConfiguracaoReserva
 from .serializers import ConfiguracaoReservaSerializer
 
 
 class ConfiguracaoReservaView(APIView):
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAdminOrReadOnly]
 
     def get(self, request):
 
@@ -21,7 +27,6 @@ class ConfiguracaoReservaView(APIView):
         )
 
         return Response(serializer.data)
-
 
     def put(self, request):
 

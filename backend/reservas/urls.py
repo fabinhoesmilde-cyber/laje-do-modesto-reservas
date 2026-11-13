@@ -11,8 +11,10 @@ from .views import (
     rejeitar_alteracao,
     aprovar_cancelamento,
     rejeitar_cancelamento,
-    criar_reserva
+    criar_reserva,
+    validar_cupom
 )
+
 
 router = DefaultRouter()
 router.register(r'status-reserva', StatusReservaViewSet)
@@ -62,5 +64,10 @@ urlpatterns = router.urls + [
         'criar-reserva/',
         criar_reserva,
         name='criar-reserva'
-),
+    ),
+        path(
+        'validar-cupom/',
+        validar_cupom,
+        name='validar-cupom'
+    ),
 ]

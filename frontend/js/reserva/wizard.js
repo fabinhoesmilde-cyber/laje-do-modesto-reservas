@@ -244,6 +244,9 @@ async function finalizarReserva() {
         desconto: resumo.desconto,
         total: resumo.total,
 
+        cupom_codigo:
+            reservaService.getCupomAplicado()?.cupom_codigo || null,
+
         adicionais: reserva.getAdicionaisSelecionados().map(a => ({
             id: a.id
         }))
@@ -285,6 +288,7 @@ async function finalizarReserva() {
     }
 
 }
+
 
 // ===============================
 // Modal de Sucesso

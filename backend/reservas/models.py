@@ -81,7 +81,7 @@ class Reserva(models.Model):
 
     horas_extras = models.PositiveIntegerField(
     default=0
-)
+    )
 
     observacao = models.TextField(
         blank=True,
@@ -97,7 +97,7 @@ class Reserva(models.Model):
     unique=True,
     blank=True,
     null=True
-)
+    )
     def save(self, *args, **kwargs):
         if not self.codigo_reserva:
             self.codigo_reserva = f"LDM-{uuid.uuid4().hex[:8].upper()}"
