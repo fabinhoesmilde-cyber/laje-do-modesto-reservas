@@ -20,7 +20,7 @@ from .auth_views import admin_login
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+
     path('api/admin-login/', admin_login, name='admin_login'),
 
     path('api/', include('clientes.urls')),
@@ -28,4 +28,22 @@ urlpatterns = [
     path('api/', include('cupons.urls')),
     path('api/', include('adicionais.urls')),
     path('api/', include('pagamentos.urls')),
+
+    # App antiga de configurações
+    path(
+        'api/configuracoes/',
+        include('configuracoes.urls')
+    ),
+
+    # Valores da reserva
+    path(
+        "api/configuracao-laje/",
+        include("configuracao_laje.urls")
+    ),
+    # Dias bloqueados
+    path(
+        "api/dias-bloqueados/",
+        include("dias_bloqueados.urls")
+    ),
+
 ]

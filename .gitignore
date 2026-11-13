@@ -1,17 +1,26 @@
+
 # Python
 venv/
 backend/venv/
-
 __pycache__/
 */__pycache__/
 *.pyc
 
-# Banco local
+# Banco de dados local
 db.sqlite3
 backend/db.sqlite3
 
-# Environment
+# Variáveis de ambiente e segredos
 .env
+.env.*
+!.env.example
+token_teste.txt
+*.pem
+*.key
+
+# Postman - arquivos locais
+.postman/
+postman/
 
 # VS Code
 .vscode/

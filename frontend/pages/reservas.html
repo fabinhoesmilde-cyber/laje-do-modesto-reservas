@@ -1,36 +1,442 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Laje do Modesto - Reservas</title>
-  <link rel="stylesheet" href="../css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Reserva - Laje do Modesto</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/reservas.css">
+
 </head>
 <body>
-  <main class="container">
-    <h1>Laje do Modesto</h1>
-    <p>Faça sua pré-reserva</p>
 
-    <form id="formReserva">
-      <input type="text" id="nome" placeholder="Nome completo" required>
-      <input type="text" id="cpf" placeholder="CPF" required>
-      <input type="text" id="telefone" placeholder="Telefone" required>
-      <input type="email" id="email" placeholder="Email" required>
+    <main class="wizard-container">
 
-      <input type="date" id="data_reserva" required>
-      <input type="time" id="hora_inicio" required>
-      <input type="time" id="hora_fim" required>
+        <!-- Cabeçalho -->
+        <header class="wizard-header">
+            <h1>Nova Reserva</h1>
+            <p>Reserve sua data de forma rápida e segura.</p>
+        </header>
 
-      <button type="submit">Enviar reserva</button>
-    </form>
+        <!-- Progresso -->
+        <section class="progress-section">
 
-    <p id="mensagem"></p>
+            <div class="progress-info">
+                <span id="step-number">Etapa 1 de 7</span>
+                <span id="step-title">Calendário</span>
+            </div>
 
-    <section class="reservas-section">
-        <h2>Disponibilidade da Laje</h2>
-        <div id="listaReservas"></div>
-    </section>
-  </main>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
 
-  <script src="../js/script.js"></script>
+        </section>
+
+        <!-- Resumo -->
+        <aside class="reservation-summary">
+
+    <h2>Sua Reserva</h2>
+
+    <div class="summary-item">
+        <strong>Data</strong>
+        <span id="summary-data">—</span>
+    </div>
+
+    <div class="summary-item">
+        <strong>Horário</strong>
+        <span id="summary-horario">—</span>
+    </div>
+
+    <div class="summary-item">
+        <strong>Duração</strong>
+        <span id="summary-duracao">8 horas</span>
+    </div>
+
+    <hr>
+
+    <div class="summary-item">
+        <strong>Reserva</strong>
+        <span id="summary-reserva">R$ 0,00</span>
+    </div>
+
+    <div class="summary-item">
+        <strong>Horas Extras</strong>
+        <span id="summary-horas">R$ 0,00</span>
+    </div>
+
+    <div class="summary-item">
+        <strong>Adicionais</strong>
+        <span id="summary-adicionais">R$ 0,00</span>
+    </div>
+
+    <div class="summary-item">
+        <strong>Desconto</strong>
+        <span id="summary-desconto">R$ 0,00</span>
+    </div>
+
+    <hr>
+
+    <div class="summary-item total">
+        <strong>Total</strong>
+        <span id="summary-total">R$ 0,00</span>
+    </div>
+
+</aside>
+
+        <!-- Conteúdo -->
+        <section class="wizard-content">
+
+            <!-- ETAPA 1 -->
+            <section class="step active" id="step-calendario">
+
+                <h2>📅 Escolha a data do evento</h2>
+
+                <div id="calendar-container">
+
+                    <!-- FullCalendar será inserido aqui -->
+
+                </div>
+
+            </section>
+
+            <!-- ETAPA 2 -->
+            <section class="step" id="step-horario">
+
+                <h2>🕒 Escolha o horário</h2>
+
+                <p>
+                    Selecione o horário de início do seu evento.
+                </p>
+
+                <div id="horarios-container">
+
+                </div>
+
+            </section>
+
+            <!-- ETAPA 3 -->
+            <section class="step" id="step-horas">
+
+                <h2>Horas Extras</h2>
+
+                <p>
+
+                    Escolha quantas horas extras deseja contratar.
+
+                </p>
+
+                <div id="horas-extras-container">
+
+                </div>
+
+            </section>
+
+            <!-- ETAPA 4 -->
+            <section class="step" id="step-adicionais">
+
+                <h2>🎉 Adicionais</h2>
+
+                <p>
+                    Escolha os adicionais que deseja incluir na sua reserva.
+                </p>
+
+                <div id="adicionais-container">
+
+                </div>
+
+            </section>
+
+                    <!-- ETAPA 5 -->
+            <section class="step" id="step-cliente">
+
+                    <h2>👤 Dados do Cliente</h2>
+
+                <div class="form-group">
+                    <label for="cliente-nome">Nome Completo</label>
+                    <input
+                        type="text"
+                        id="cliente-nome"
+                        placeholder="Digite seu nome">
+                </div>
+
+                <div class="form-group">
+                    <label for="cliente-cpf">CPF</label>
+                    <input
+                        type="text"
+                        id="cliente-cpf"
+                        placeholder="000.000.000-00">
+                </div>
+
+                <div class="form-group">
+                    <label for="cliente-telefone">Telefone</label>
+                    <input
+                        type="text"
+                        id="cliente-telefone"
+                        placeholder="(21) 99999-9999">
+                </div>
+
+                <div class="form-group">
+                    <label for="cliente-email">E-mail</label>
+                    <input
+                        type="email"
+                        id="cliente-email"
+                        placeholder="email@exemplo.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="cliente-convidados">
+                        Quantidade de convidados
+                    </label>
+
+                    <input
+                        type="number"
+                        id="cliente-convidados"
+                        min="1"
+                        value="1">
+                </div>
+
+                <div id="cliente-erros"></div>
+
+            </section>
+
+                <!-- ETAPA 6 -->
+            <section class="step" id="step-termos">
+
+                <h2>📜 Termos da Locação</h2>
+
+                <div class="termos-box">
+
+                    <h3>Regras da Reserva</h3>
+
+                    <ul>
+
+                        <li>O horário contratado deve ser respeitado.</li>
+
+                        <li>Danos causados ao espaço serão de responsabilidade do locatário.</li>
+
+                        <li>O número máximo de convidados deve ser respeitado.</li>
+
+                        <li>O cancelamento deverá seguir a política vigente.</li>
+
+                        <li>O pagamento deverá ser realizado conforme combinado.</li>
+
+                    </ul>
+
+                </div>
+
+                <div class="aceite-termos">
+
+                    <label>
+
+                        <input
+                            type="checkbox"
+                            id="aceitar-termos">
+
+                        Li e concordo com os termos da locação.
+
+                    </label>
+
+                </div>
+
+            </section>
+
+            <!-- ETAPA 7 -->
+            <section class="step" id="step-resumo">
+
+                <h2>✅ Confirme sua Reserva</h2>
+
+                <div class="resumo-final">
+
+                    <div class="resumo-card">
+
+                        <h3>📅 Evento</h3>
+
+                        <div class="linha">
+                            <strong>Data:</strong>
+                            <span id="final-data"></span>
+                        </div>
+
+                        <div class="linha">
+                            <strong>Horário:</strong>
+                            <span id="final-horario"></span>
+                        </div>
+
+                        <div class="linha">
+                            <strong>Duração:</strong>
+                            <span id="final-duracao"></span>
+                        </div>
+
+                    </div>
+
+                    <div class="resumo-card">
+
+                        <h3>👤 Cliente</h3>
+
+                        <div class="linha">
+                            <strong>Nome:</strong>
+                            <span id="final-nome"></span>
+                        </div>
+
+                        <div class="linha">
+                            <strong>CPF:</strong>
+                            <span id="final-cpf"></span>
+                        </div>
+
+                        <div class="linha">
+                            <strong>Telefone:</strong>
+                            <span id="final-telefone"></span>
+                        </div>
+
+                        <div class="linha">
+                            <strong>E-mail:</strong>
+                            <span id="final-email"></span>
+                        </div>
+
+                        <div class="linha">
+                            <strong>Convidados:</strong>
+                            <span id="final-convidados"></span>
+                        </div>
+
+                    </div>
+
+                    <div class="resumo-card">
+
+                        <h3>🎉 Adicionais</h3>
+
+                        <div id="final-adicionais">
+
+                        </div>
+
+                    </div>
+
+                    <div class="resumo-card total-card">
+
+                        <h3>💰 Valores</h3>
+
+                        <div class="linha">
+                            <strong>Reserva</strong>
+                            <span id="final-reserva"></span>
+                        </div>
+
+                        <div class="linha">
+                            <strong>Horas Extras</strong>
+                            <span id="final-horas"></span>
+                        </div>
+
+                        <div class="linha">
+                            <strong>Adicionais</strong>
+                            <span id="final-valor-adicionais"></span>
+                        </div>
+
+            <div class="linha">
+                <strong>Cupom de desconto</strong>
+                <div>
+                    <input
+                        type="text"
+                        id="cupom-codigo"
+                        placeholder="Digite seu cupom"
+                    >
+                    <button type="button" id="btn-aplicar-cupom">
+                        Aplicar cupom
+                    </button>
+                    <p id="cupom-mensagem"></p>
+                </div>
+            </div>
+
+            <div class="linha">
+                <strong>Desconto</strong>
+                <span id="final-desconto"></span>
+            </div>
+
+                        <hr>
+
+                        <div class="linha total">
+
+                            <strong>TOTAL</strong>
+
+                            <span id="final-total"></span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+        </section>
+
+        <!-- Navegação -->
+        <footer class="wizard-footer">
+
+            <button id="btn-prev" type="button">
+                ← Voltar
+            </button>
+
+            <button id="btn-next" type="button">
+                Próximo →
+            </button>
+
+        </footer>
+
+    </main>
+
+<script src="../js/reserva/estado.js"></script>
+<script src="../js/reserva/reserva-service.js"></script>
+<script src="../js/reserva/configuracao-service.js"></script>
+<script src="../js/reserva/adicional-service.js"></script>
+<script src="../js/reserva/controller.js"></script>
+
+<!-- FullCalendar PRIMEIRO -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+
+<!-- Depois o calendário -->
+<script src="../js/reserva/calendario.js"></script>
+
+<script src="../js/reserva/horarios.js"></script>
+<script src="../js/reserva/horas-extras.js"></script>
+<script src="../js/reserva/adicionais.js"></script>
+<script src="../js/reserva/resumo.js"></script>
+<script src="../js/reserva/pagamento.js"></script>
+<script src="../js/reserva/cliente.js"></script>
+<script src="../js/reserva/resumo-final.js"></script>
+<script src="../js/reserva/wizard.js"></script>
+
+<script src="../js/reserva/app.js"></script>
+
+<!-- ===========================
+     MODAL DE SUCESSO
+============================ -->
+
+<div id="modal-sucesso" class="modal-sucesso">
+
+    <div class="modal-box">
+
+        <div class="icone-sucesso">
+            ✅
+        </div>
+
+        <h2>Reserva criada com sucesso!</h2>
+
+        <p>
+            Sua reserva foi registrada com sucesso.
+        </p>
+
+        <div class="codigo-box">
+
+            <span>Código da Reserva</span>
+
+            <h3 id="codigo-reserva"></h3>
+
+        </div>
+
+        <button id="btn-nova-reserva">
+            Fazer Nova Reserva
+        </button>
+
+    </div>
+
+</div>
+
 </body>
-</html>
+</html>>

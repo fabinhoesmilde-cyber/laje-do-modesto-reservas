@@ -79,6 +79,10 @@ class Reserva(models.Model):
         decimal_places=2
     )
 
+    horas_extras = models.PositiveIntegerField(
+    default=0
+    )
+
     observacao = models.TextField(
         blank=True,
         null=True
@@ -93,7 +97,7 @@ class Reserva(models.Model):
     unique=True,
     blank=True,
     null=True
-)
+    )
     def save(self, *args, **kwargs):
         if not self.codigo_reserva:
             self.codigo_reserva = f"LDM-{uuid.uuid4().hex[:8].upper()}"
@@ -102,9 +106,9 @@ class Reserva(models.Model):
 
     def __str__(self):
         return f"{self.cliente.nome} - {self.data_reserva}"
-    
+
 class ReservaAdicional(models.Model):
-        
+
     reserva = models.ForeignKey(
     Reserva,
     on_delete=models.CASCADE
