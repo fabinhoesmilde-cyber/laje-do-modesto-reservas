@@ -1,4 +1,3 @@
-
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -344,3 +343,61 @@ class TesteValidacaoCupomSerializer(TestCase):
 
         self.assertFalse(serializer.is_valid())
         self.assertIn("desconto_maximo", serializer.errors)
+
+
+class TesteSolicitarAlteracao(TestCase):
+    def setUp(self):
+        self.confirmada = StatusReserva.objects.create(nome="CONFIRMADA")
+        StatusReserva.objects.create(nome="ALTERACAO_SOLICITADA")
+        self.cancelada = StatusReserva.objects.create(nome="CANCELADA")
+
+        self.cliente = Cliente.objects.create(
+            nome="Maria Teste",
+            cpf="123.456.789-00",
+            telefone="21999999999",
+            email="maria@teste.com",
+        )
+
+        self.reserva = Reserva.objects.create(
+            cliente=self.cliente,
+            status=self.confirmada,
+            data_reserva=date.today() + timedelta(days=10),
+            hora_inicio="18:00",
+            hora_fim="02:00",
+            valor_base=Decimal("700.00"),
+            valor_total=Decimal("700.00"),
+        )
+
+    def enviar(self, **extra):
+        dados = {
+            "cpf": "123.456.789-00",
+            "codigo_reserva": self.reserva.codigo_reserva,
+            "nova_data": str(date.today() + timedelta(days=20)),
+            "novo_horario_inicio": "18:00",
+            "novo_horario_fim": "23:00",
+        }
+        dados.update(extra)
+        return self.client.post(
+            "/api/solicitar-alteracao/",
+            dados,
+            content_type="application/json",
+        )
+
+    def test_alteracao_valida_muda_status(self):
+        resposta = self.enviar()
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json()["status"], "ALTERACAO_SOLICITADA")
+
+    def test_data_invalida_retorna_400(self):
+        resposta = self.enviar(nova_data="abc")
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_horario_invalido_retorna_400(self):
+        resposta = self.enviar(novo_horario_inicio="25:99")
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_reserva_cancelada_nao_pode_alterar(self):
+        self.reserva.status = self.cancelada
+        self.reserva.save()
+        resposta = self.enviar()
+        self.assertEqual(resposta.status_code, 400)

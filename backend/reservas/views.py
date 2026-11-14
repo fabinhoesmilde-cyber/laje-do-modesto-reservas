@@ -16,6 +16,8 @@ from rest_framework.authentication import TokenAuthentication
 
 from datetime import datetime, timedelta
 
+from django.utils import timezone
+
 from cupons.models import Cupom
 from clientes.models import Cliente
 from adicionais.models import Adicional
@@ -24,6 +26,7 @@ from configuracao_laje.models import ConfiguracaoReserva
 
 from .models import StatusReserva, Reserva
 from .serializers import StatusReservaSerializer, ReservaSerializer
+from .regras import calcular_cancelamento
 
 class StatusReservaViewSet(viewsets.ModelViewSet):
     queryset = StatusReserva.objects.all()
@@ -106,26 +109,63 @@ def solicitar_cancelamento(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # 4. Buscar o status de cancelamento solicitado
-    status_cancelamento = StatusReserva.objects.filter(
-        nome='CANCELAMENTO_SOLICITADO'
+    # 4. Não é possível cancelar um evento que já aconteceu
+    if reserva.data_reserva < timezone.localdate():
+        return Response(
+            {'erro': 'Não é possível cancelar uma reserva de data passada.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 5. Calcular a taxa e o reembolso segundo a regra de cancelamento
+    calculo = calcular_cancelamento(
+        reserva.data_reserva,
+        reserva.valor_total
+    )
+
+    # Dentro do prazo grátis o cancelamento é automático.
+    # Fora do prazo (com taxa), o administrador ainda precisa aprovar.
+    if calculo['dentro_do_prazo']:
+        nome_novo_status = 'CANCELADA'
+    else:
+        nome_novo_status = 'CANCELAMENTO_SOLICITADO'
+
+    # 6. Buscar o novo status
+    novo_status = StatusReserva.objects.filter(
+        nome=nome_novo_status
     ).first()
 
-    if not status_cancelamento:
+    if not novo_status:
         return Response(
-            {'erro': 'Status CANCELAMENTO_SOLICITADO não encontrado.'},
+            {'erro': f'Status {nome_novo_status} não encontrado.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-    # 5. Atualizar o status da reserva
-    reserva.status = status_cancelamento
+    # 7. Atualizar a reserva
+    reserva.status = novo_status
+    reserva.taxa_cancelamento = calculo['taxa']
+    reserva.valor_reembolso = calculo['reembolso']
+
+    if calculo['dentro_do_prazo']:
+        reserva.cancelado_em = timezone.now()
+
     reserva.save()
 
-    # 6. Retornar a confirmação da solicitação
+    # 8. Retornar o resultado
+    if calculo['dentro_do_prazo']:
+        mensagem = 'Reserva cancelada com sucesso.'
+    else:
+        mensagem = (
+            'Solicitação de cancelamento enviada. '
+            'Como faltam menos de 7 dias para o evento, '
+            'será cobrada uma taxa e o pedido aguarda aprovação.'
+        )
+
     return Response({
-        'mensagem': 'Solicitação de cancelamento enviada com sucesso.',
+        'mensagem': mensagem,
         'codigo_reserva': reserva.codigo_reserva,
-        'status': reserva.status.nome
+        'status': reserva.status.nome,
+        'taxa_cancelamento': str(calculo['taxa']),
+        'valor_reembolso': str(calculo['reembolso']),
     })
 
 
@@ -160,6 +200,39 @@ def solicitar_alteracao(request):
         return Response(
             {'erro': 'Reserva não encontrada.'},
             status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Somente reservas confirmadas podem pedir alteração
+    if reserva.status.nome != 'CONFIRMADA':
+        return Response(
+            {
+                'erro': (
+                    'Não é possível solicitar a alteração. '
+                    'Somente reservas confirmadas podem ser alteradas.'
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Converter os textos recebidos em data e hora de verdade.
+    # Se o formato estiver errado, devolvemos 400 em vez de estourar 500.
+    try:
+        nova_data = datetime.strptime(nova_data, '%Y-%m-%d').date()
+        novo_horario_inicio = datetime.strptime(
+            novo_horario_inicio, '%H:%M'
+        ).time()
+        novo_horario_fim = datetime.strptime(
+            novo_horario_fim, '%H:%M'
+        ).time()
+    except (ValueError, TypeError):
+        return Response(
+            {
+                'erro': (
+                    'Data ou horário inválido. '
+                    'Use AAAA-MM-DD para a data e HH:MM para os horários.'
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST
         )
 
     status_alteracao = StatusReserva.objects.filter(
@@ -325,6 +398,13 @@ def aprovar_cancelamento(request):
             status=status.HTTP_404_NOT_FOUND
         )
 
+    # Só dá para aprovar um cancelamento que foi solicitado
+    if reserva.status.nome != 'CANCELAMENTO_SOLICITADO':
+        return Response(
+            {'erro': 'Esta reserva não possui cancelamento solicitado.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     status_cancelada = StatusReserva.objects.filter(
         nome='CANCELADA'
     ).first()
@@ -335,13 +415,26 @@ def aprovar_cancelamento(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+    # Pedidos feitos antes desta regra existir não têm taxa gravada.
+    # Nesse caso, calculamos agora.
+    if reserva.taxa_cancelamento is None:
+        calculo = calcular_cancelamento(
+            reserva.data_reserva,
+            reserva.valor_total
+        )
+        reserva.taxa_cancelamento = calculo['taxa']
+        reserva.valor_reembolso = calculo['reembolso']
+
     reserva.status = status_cancelada
+    reserva.cancelado_em = timezone.now()
     reserva.save()
 
     return Response({
         'mensagem': 'Cancelamento aprovado com sucesso.',
         'codigo_reserva': reserva.codigo_reserva,
-        'status': reserva.status.nome
+        'status': reserva.status.nome,
+        'taxa_cancelamento': str(reserva.taxa_cancelamento),
+        'valor_reembolso': str(reserva.valor_reembolso),
     })
 
 @api_view(['POST'])
@@ -366,6 +459,13 @@ def rejeitar_cancelamento(request):
             status=status.HTTP_404_NOT_FOUND
         )
 
+    # Só dá para rejeitar um cancelamento que foi solicitado
+    if reserva.status.nome != 'CANCELAMENTO_SOLICITADO':
+        return Response(
+            {'erro': 'Esta reserva não possui cancelamento solicitado.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     status_confirmada = StatusReserva.objects.filter(
         nome='CONFIRMADA'
     ).first()
@@ -375,6 +475,12 @@ def rejeitar_cancelamento(request):
             {'erro': 'Status CONFIRMADA não encontrado.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+    # A reserva continua valendo: apagamos a taxa e o reembolso
+    # que tinham sido calculados para o pedido rejeitado.
+    reserva.taxa_cancelamento = None
+    reserva.valor_reembolso = None
+    reserva.cancelado_em = None
 
     reserva.status = status_confirmada
     reserva.save()

@@ -80,7 +80,26 @@ class Reserva(models.Model):
     )
 
     horas_extras = models.PositiveIntegerField(
-    default=0
+        default=0
+    )
+
+    taxa_cancelamento = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    valor_reembolso = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    cancelado_em = models.DateTimeField(
+        null=True,
+        blank=True
     )
 
     observacao = models.TextField(

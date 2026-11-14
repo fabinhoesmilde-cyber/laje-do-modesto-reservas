@@ -71,3 +71,8 @@ class ReservaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reserva
         fields = "__all__"
+        read_only_fields = (
+            "taxa_cancelamento",
+            "valor_reembolso",
+            "cancelado_em",
+    )
