@@ -26,7 +26,12 @@ from configuracao_laje.models import ConfiguracaoReserva
 
 from .models import StatusReserva, Reserva
 from .serializers import StatusReservaSerializer, ReservaSerializer
-from .regras import calcular_cancelamento
+from .regras import (
+    DURACAO_BASE_HORAS,
+    calcular_cancelamento,
+    horario_inicio_valido,
+    horas_extras_maximas,
+)
 
 class StatusReservaViewSet(viewsets.ModelViewSet):
     queryset = StatusReserva.objects.all()
@@ -590,6 +595,13 @@ def criar_reserva(request):
             dados["hora_inicio"], "%H:%M"
         ).time()
 
+        # O início precisa ser um dos horários oferecidos pelo site
+        if not horario_inicio_valido(hora_inicio):
+            return Response(
+                {"erro": "Horário de início inválido. Escolha uma hora cheia entre 08:00 e 21:00."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         horas_extras = int(dados.get("horas_extras", 0))
 
         if horas_extras < 0:
@@ -599,9 +611,14 @@ def criar_reserva(request):
             )
 
         # Reserva padrão de 8 horas, com limite até 05:00
-        max_horas_extras = max(
-            0, 29 - (hora_inicio.hour + 8)
-        )
+        max_horas_extras = horas_extras_maximas(data, hora_inicio)
+
+        # Se nem as 8 horas base cabem, o horário de início é inválido
+        if max_horas_extras < 0:
+            return Response(
+                {"erro": "Horário de início inválido: a festa passaria das 05:00."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if horas_extras > max_horas_extras:
             return Response(
@@ -609,7 +626,7 @@ def criar_reserva(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        duracao = 8 + horas_extras
+        duracao = DURACAO_BASE_HORAS + horas_extras
 
         inicio_dt = datetime.combine(data, hora_inicio)
         fim_dt = inicio_dt + timedelta(hours=duracao)
