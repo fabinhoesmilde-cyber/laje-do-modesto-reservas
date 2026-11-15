@@ -1,6 +1,22 @@
 from datetime import datetime, timedelta
 
+from configuracao_laje.models import ConfiguracaoReserva
+
 from .models import Reserva
+
+
+def travar_agenda():
+    """
+    Trava a agenda até o fim da transação atual.
+
+    Duas pessoas reservando ao mesmo tempo passariam juntas pela checagem
+    de conflito. Com esta trava, a segunda espera a primeira terminar e só
+    então confere o horário. Deve ser chamada dentro de transaction.atomic.
+
+    No PostgreSQL e no MySQL a trava funciona de verdade. No SQLite
+    (usado só em desenvolvimento) o Django simplesmente a ignora.
+    """
+    ConfiguracaoReserva.objects.select_for_update().filter(pk=1).first()
 
 
 def existe_conflito(inicio_dt, fim_dt, excluir_id=None):

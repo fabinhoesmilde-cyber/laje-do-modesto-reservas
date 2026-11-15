@@ -26,7 +26,7 @@ from configuracao_laje.models import ConfiguracaoReserva
 
 from .models import StatusReserva, Reserva
 from .serializers import StatusReservaSerializer, ReservaSerializer
-from .disponibilidade import existe_conflito
+from .disponibilidade import existe_conflito, travar_agenda
 from .regras import (
     DURACAO_BASE_HORAS,
     calcular_cancelamento,
@@ -176,23 +176,24 @@ def solicitar_cancelamento(request):
 
 
 @api_view(['POST'])
+@transaction.atomic
 def solicitar_alteracao(request):
     cpf = request.data.get('cpf')
     codigo_reserva = request.data.get('codigo_reserva')
     nova_data = request.data.get('nova_data')
     novo_horario_inicio = request.data.get('novo_horario_inicio')
-    novo_horario_fim = request.data.get('novo_horario_fim')
+    # O horário de fim enviado pelo site é ignorado: quem calcula o fim
+    # é o servidor, mantendo a duração que o cliente já contratou.
 
     if (
         not cpf
         or not codigo_reserva
         or not nova_data
         or not novo_horario_inicio
-        or not novo_horario_fim
     ):
         return Response(
             {
-                'erro': 'CPF, código da reserva, nova data e novos horários são obrigatórios.'
+                'erro': 'CPF, código da reserva, nova data e novo horário de início são obrigatórios.'
             },
             status=status.HTTP_400_BAD_REQUEST
         )
@@ -227,19 +228,43 @@ def solicitar_alteracao(request):
         novo_horario_inicio = datetime.strptime(
             novo_horario_inicio, '%H:%M'
         ).time()
-        novo_horario_fim = datetime.strptime(
-            novo_horario_fim, '%H:%M'
-        ).time()
     except (ValueError, TypeError):
         return Response(
             {
                 'erro': (
                     'Data ou horário inválido. '
-                    'Use AAAA-MM-DD para a data e HH:MM para os horários.'
+                    'Use AAAA-MM-DD para a data e HH:MM para o horário.'
                 )
             },
             status=status.HTTP_400_BAD_REQUEST
         )
+
+    # A nova data não pode ser no passado
+    if nova_data < timezone.localdate():
+        return Response(
+            {'erro': 'A nova data não pode ser no passado.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # O novo início precisa ser um dos horários oferecidos pelo site
+    if not horario_inicio_valido(novo_horario_inicio):
+        return Response(
+            {'erro': 'Horário de início inválido. Escolha uma hora cheia entre 08:00 e 21:00.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # A duração contratada (8 horas + extras já pagas) não muda.
+    # Ela precisa caber antes das 05:00 no novo horário.
+    horas_extras = reserva.horas_extras or 0
+
+    if horas_extras > horas_extras_maximas(nova_data, novo_horario_inicio):
+        return Response(
+            {'erro': 'Com esse horário de início, a festa passaria das 05:00. Escolha um início mais cedo.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    inicio_dt = datetime.combine(nova_data, novo_horario_inicio)
+    fim_dt = inicio_dt + timedelta(hours=DURACAO_BASE_HORAS + horas_extras)
 
     status_alteracao = StatusReserva.objects.filter(
         nome='ALTERACAO_SOLICITADA'
@@ -251,13 +276,11 @@ def solicitar_alteracao(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-    conflito = Reserva.objects.filter(
-        data_reserva=nova_data,
-        hora_inicio__lt=novo_horario_fim,
-        hora_fim__gt=novo_horario_inicio
-    ).exclude(id=reserva.id).exists()
+    # Trava a agenda e confere se o novo horário está livre.
+    # A própria reserva é ignorada (ela pode se sobrepor ao horário antigo).
+    travar_agenda()
 
-    if conflito:
+    if existe_conflito(inicio_dt, fim_dt, excluir_id=reserva.id):
         return Response(
             {'erro': 'A nova data e horário solicitados já estão indisponíveis.'},
             status=status.HTTP_400_BAD_REQUEST
@@ -265,7 +288,7 @@ def solicitar_alteracao(request):
 
     reserva.nova_data_solicitada = nova_data
     reserva.novo_horario_inicio_solicitado = novo_horario_inicio
-    reserva.novo_horario_fim_solicitado = novo_horario_fim
+    reserva.novo_horario_fim_solicitado = fim_dt.time()
     reserva.status = status_alteracao
     reserva.save()
 
@@ -712,8 +735,10 @@ def criar_reserva(request):
 
         valor_total = subtotal - valor_desconto
 
-        # 6. Verificar conflitos de horário
+        # 6. Trava a agenda e verifica conflitos de horário
         # (reservas canceladas não bloqueiam o horário)
+        travar_agenda()
+
         if existe_conflito(inicio_dt, fim_dt):
             return Response(
                 {"erro": "Já existe uma reserva neste horário."},
