@@ -26,6 +26,7 @@ from configuracao_laje.models import ConfiguracaoReserva
 
 from .models import StatusReserva, Reserva
 from .serializers import StatusReservaSerializer, ReservaSerializer
+from .disponibilidade import existe_conflito
 from .regras import (
     DURACAO_BASE_HORAS,
     calcular_cancelamento,
@@ -712,49 +713,15 @@ def criar_reserva(request):
         valor_total = subtotal - valor_desconto
 
         # 6. Verificar conflitos de horário
-        datas_verificacao = {
-            data - timedelta(days=1),
-            data,
-            fim_dt.date()
-        }
-
-        reservas_existentes = Reserva.objects.filter(
-            data_reserva__in=datas_verificacao
-        )
-
-        for existente in reservas_existentes:
-            inicio_existente = datetime.combine(
-                existente.data_reserva,
-                existente.hora_inicio
+        # (reservas canceladas não bloqueiam o horário)
+        if existe_conflito(inicio_dt, fim_dt):
+            return Response(
+                {"erro": "Já existe uma reserva neste horário."},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-            fim_existente = datetime.combine(
-                existente.data_reserva,
-                existente.hora_fim
-            )
-
-            if fim_existente <= inicio_existente:
-                fim_existente += timedelta(days=1)
-
-            if (
-                inicio_dt < fim_existente
-                and fim_dt > inicio_existente
-            ):
-                return Response(
-                    {"erro": "Já existe uma reserva neste horário."},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-        # 7. Buscar ou cadastrar o cliente
-        cliente, _ = Cliente.objects.get_or_create(
-            cpf=dados["cpf"],
-            defaults={
-                "nome": dados["nome"],
-                "telefone": dados["telefone"],
-                "email": dados["email"]
-            }
-        )
-
+        # 7. Buscar o status ANTES de cadastrar o cliente.
+        # Assim, se o status não existir, nenhum cliente fica salvo à toa.
         status_confirmada = StatusReserva.objects.filter(
             nome="CONFIRMADA"
         ).first()
@@ -764,6 +731,16 @@ def criar_reserva(request):
                 {"erro": "Status CONFIRMADA não encontrado."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+        # Buscar ou cadastrar o cliente
+        cliente, _ = Cliente.objects.get_or_create(
+            cpf=dados["cpf"],
+            defaults={
+                "nome": dados["nome"],
+                "telefone": dados["telefone"],
+                "email": dados["email"]
+            }
+        )
 
         # 8. Criar a reserva com os valores calculados no servidor
         reserva = Reserva.objects.create(
