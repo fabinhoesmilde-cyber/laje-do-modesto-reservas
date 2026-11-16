@@ -141,3 +141,23 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# E-mail: em desenvolvimento, as mensagens aparecem no terminal
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default='Laje do Modesto <nao-responda@lajedomodesto.local>'
+)
+
+# Endereço do site, usado nos links enviados por e-mail
+FRONTEND_URL = config('FRONTEND_URL', default='http://127.0.0.1:5500')
+
+# Limite de tentativas nos endpoints públicos
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_RATES': {
+        'cadastro': '10/hour',
+    },
+}

@@ -302,6 +302,7 @@ def solicitar_alteracao(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAdminUser])
+@transaction.atomic
 def aprovar_alteracao(request):
     codigo_reserva = request.data.get('codigo_reserva')
 
@@ -321,7 +322,11 @@ def aprovar_alteracao(request):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    if not reserva.nova_data_solicitada:
+    # Só dá para aprovar uma alteração que foi solicitada
+    if (
+        reserva.status.nome != 'ALTERACAO_SOLICITADA'
+        or not reserva.nova_data_solicitada
+    ):
         return Response(
             {'erro': 'Esta reserva não possui alteração solicitada.'},
             status=status.HTTP_400_BAD_REQUEST
@@ -337,9 +342,34 @@ def aprovar_alteracao(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-    reserva.data_reserva = reserva.nova_data_solicitada
-    reserva.hora_inicio = reserva.novo_horario_inicio_solicitado
-    reserva.hora_fim = reserva.novo_horario_fim_solicitado
+    nova_data = reserva.nova_data_solicitada
+    novo_inicio = reserva.novo_horario_inicio_solicitado
+
+    # A data pedida pode ter passado enquanto o pedido esperava
+    if nova_data < timezone.localdate():
+        return Response(
+            {'erro': 'A data solicitada já passou. Rejeite a alteração.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # O fim é recalculado: a duração contratada não muda
+    horas_extras = reserva.horas_extras or 0
+    inicio_dt = datetime.combine(nova_data, novo_inicio)
+    fim_dt = inicio_dt + timedelta(hours=DURACAO_BASE_HORAS + horas_extras)
+
+    # Confere de novo: desde o pedido, outra reserva pode ter ocupado
+    # o horário novo.
+    travar_agenda()
+
+    if existe_conflito(inicio_dt, fim_dt, excluir_id=reserva.id):
+        return Response(
+            {'erro': 'O novo horário não está mais disponível. Rejeite a alteração.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    reserva.data_reserva = nova_data
+    reserva.hora_inicio = novo_inicio
+    reserva.hora_fim = fim_dt.time()
 
     reserva.nova_data_solicitada = None
     reserva.novo_horario_inicio_solicitado = None
@@ -376,7 +406,8 @@ def rejeitar_alteracao(request):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    if not reserva.nova_data_solicitada:
+    # Só dá para rejeitar uma alteração que foi solicitada
+    if reserva.status.nome != 'ALTERACAO_SOLICITADA':
         return Response(
             {'erro': 'Esta reserva não possui alteração solicitada.'},
             status=status.HTTP_400_BAD_REQUEST

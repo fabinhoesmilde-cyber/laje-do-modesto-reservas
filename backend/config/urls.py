@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/', include('cupons.urls')),
     path('api/', include('adicionais.urls')),
     path('api/', include('pagamentos.urls')),
+    path('api/', include('users.urls')),
 
     # App antiga de configurações
     path(
