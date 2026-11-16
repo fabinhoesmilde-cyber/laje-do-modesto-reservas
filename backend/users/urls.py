@@ -2,6 +2,7 @@ from django.urls import path
 
 from .cadastro import cadastro_cliente, confirmar_cadastro
 from .login import login_cliente, logout_cliente, meus_dados
+from .minhas_reservas import detalhe_reserva, minhas_reservas
 
 urlpatterns = [
     path(
@@ -28,5 +29,15 @@ urlpatterns = [
         'cliente/meus-dados/',
         meus_dados,
         name='cliente-meus-dados'
+    ),
+    path(
+        'cliente/minhas-reservas/',
+        minhas_reservas,
+        name='cliente-minhas-reservas'
+    ),
+    path(
+        'cliente/minhas-reservas/<str:codigo>/',
+        detalhe_reserva,
+        name='cliente-detalhe-reserva'
     ),
 ]
