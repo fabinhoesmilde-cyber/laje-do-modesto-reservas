@@ -3,6 +3,7 @@ from django.urls import path
 from .cadastro import cadastro_cliente, confirmar_cadastro
 from .acoes_cliente import alterar_minha_reserva, cancelar_minha_reserva
 from .login import login_cliente, logout_cliente, meus_dados
+from .senha import esqueci_senha, redefinir_senha
 from .minhas_reservas import detalhe_reserva, minhas_reservas
 
 urlpatterns = [
@@ -50,5 +51,15 @@ urlpatterns = [
         'cliente/minhas-reservas/<str:codigo>/alterar/',
         alterar_minha_reserva,
         name='cliente-alterar-reserva'
+    ),
+    path(
+        'cliente/esqueci-senha/',
+        esqueci_senha,
+        name='cliente-esqueci-senha'
+    ),
+    path(
+        'cliente/redefinir-senha/',
+        redefinir_senha,
+        name='cliente-redefinir-senha'
     ),
 ]
