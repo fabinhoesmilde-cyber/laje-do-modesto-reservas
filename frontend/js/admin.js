@@ -3,6 +3,12 @@ const API_URL = "http://127.0.0.1:8000/api";
 const adminToken = localStorage.getItem("adminToken");
 const adminUsername = localStorage.getItem("adminUsername");
 
+async function fetchAdmin(url, options = {}) {
+    const headers = new Headers(options.headers || {});
+    headers.set("Authorization", `Token ${adminToken || ""}`);
+    return window.fetch(url, { ...options, headers });
+}
+
 if (!adminToken) {
     window.location.href = "admin-login.html";
 }
@@ -31,7 +37,7 @@ async function carregarReservas() {
 
     try {
 
-    const resposta = await fetch(`${API_URL}/reservas/`, {
+    const resposta = await fetchAdmin(`${API_URL}/reservas/`, {
         method: "GET",
         headers: {
             "Authorization": `Token ${adminToken}`
@@ -456,7 +462,7 @@ async function abrirModalClientes() {
 
     try {
 
-    const resposta = await fetch(`${API_URL}/clientes/`, {
+    const resposta = await fetchAdmin(`${API_URL}/clientes/`, {
         method: "GET",
         headers: {
             "Authorization": `Token ${adminToken}`
@@ -574,7 +580,7 @@ async function buscarClientes() {
 
     try {
 
-        const resposta = await fetch(`${API_URL}/clientes/`, {
+        const resposta = await fetchAdmin(`${API_URL}/clientes/`, {
             method: "GET",
             headers: {
                 "Authorization": `Token ${adminToken}`
@@ -956,7 +962,7 @@ async function salvarCliente(id) {
 
     try {
 
-        const resposta = await fetch(
+        const resposta = await fetchAdmin(
             `http://127.0.0.1:8000/api/clientes/${id}/`,
             {
                 method: "PATCH",
@@ -1462,7 +1468,7 @@ async function carregarValoresReserva() {
 
     try {
 
-        const resposta = await fetch(
+        const resposta = await fetchAdmin(
             `${API_URL}/configuracao-laje/reserva/`
         );
 
@@ -1546,7 +1552,7 @@ async function salvarValoresReserva() {
 
     try {
 
-        const resposta = await fetch(
+        const resposta = await fetchAdmin(
             `${API_URL}/configuracao-laje/reserva/`,
             {
                 method: "PUT",
@@ -1875,7 +1881,7 @@ async function salvarCupom() {
             ? `${API_URL}/cupons/${idEdicao}/`
             : `${API_URL}/cupons/`;
 
-        const resposta = await fetch(url, {
+        const resposta = await fetchAdmin(url, {
             method: editando ? "PATCH" : "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -1943,7 +1949,7 @@ async function carregarAdicionais() {
     lista.textContent = "Carregando adicionais...";
 
     try {
-        const resposta = await fetch(`${API_URL}/adicionais/`);
+        const resposta = await fetchAdmin(`${API_URL}/adicionais/`);
 
         if (!resposta.ok) {
             throw new Error(`Erro HTTP ${resposta.status}`);
@@ -2048,7 +2054,7 @@ async function salvarAdicional() {
     }
 
     try {
-        const resposta = await fetch(`${API_URL}/adicionais/`, {
+        const resposta = await fetchAdmin(`${API_URL}/adicionais/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -2115,7 +2121,7 @@ async function alterarStatusAdicional(adicional) {
     if (!confirmar) return;
 
     try {
-        const resposta = await fetch(
+        const resposta = await fetchAdmin(
             `${API_URL}/adicionais/${adicional.id}/`,
             {
                 method: "PATCH",
@@ -2163,7 +2169,7 @@ async function excluirAdicional(adicional) {
     if (!confirmar) return;
 
     try {
-        const resposta = await fetch(
+        const resposta = await fetchAdmin(
             `${API_URL}/adicionais/${adicional.id}/`,
             {
                 method: "DELETE"
@@ -2274,7 +2280,7 @@ async function salvarEdicaoAdicional(id) {
     }
 
     try {
-        const resposta = await fetch(`${API_URL}/adicionais/${id}/`, {
+        const resposta = await fetchAdmin(`${API_URL}/adicionais/${id}/`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json"
@@ -2326,7 +2332,7 @@ async function carregarDiasBloqueados() {
     }
 
     try {
-        const resposta = await fetch(
+        const resposta = await fetchAdmin(
             `${API_URL}/dias-bloqueados/`
         );
 
@@ -2399,7 +2405,7 @@ async function salvarDiaBloqueado() {
     }
 
     try {
-        const resposta = await fetch(
+        const resposta = await fetchAdmin(
             `${API_URL}/dias-bloqueados/`,
             {
                 method: "POST",
@@ -2455,7 +2461,7 @@ async function excluirDiaBloqueado(id) {
     }
 
     try {
-        const resposta = await fetch(
+        const resposta = await fetchAdmin(
             `${API_URL}/dias-bloqueados/${id}/`,
             {
                 method: "DELETE"
@@ -2491,7 +2497,7 @@ async function carregarCupons() {
     lista.textContent = "Carregando cupons...";
 
     try {
-        const resposta = await fetch(`${API_URL}/cupons/`);
+        const resposta = await fetchAdmin(`${API_URL}/cupons/`);
 
         if (!resposta.ok) {
             throw new Error(`Erro HTTP ${resposta.status}`);

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Minha conta - Laje do Modesto</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/cliente.css">
+</head>
+<body>
+  <main class="container container-largo">
+    <div class="topo-conta">
+      <h1>Minha conta</h1>
+      <button type="button" id="botaoSair">Sair</button>
+    </div>
+
+    <p id="mensagemConta" class="msg" role="status"></p>
+
+    <section class="bloco">
+      <h2>Meus dados</h2>
+
+      <div class="dados-conta" id="dadosConta"></div>
+
+      <form id="formDados">
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" maxlength="150" required>
+
+        <label for="telefone">Telefone com DDD</label>
+        <input type="tel" id="telefone" required>
+
+        <button type="submit">Salvar alterações</button>
+      </form>
+
+      <p id="mensagemDados" class="msg" role="status"></p>
+    </section>
+
+    <section class="bloco">
+      <h2>Minhas reservas</h2>
+      <div id="listaReservas"><p>Carregando...</p></div>
+    </section>
+
+    <div class="links-auxiliares">
+      <a href="reservas.html">Fazer uma nova reserva</a><br>
+      <a href="index.html">Voltar para a home</a>
+    </div>
+  </main>
+
+  <script src="../js/cliente/api.js"></script>
+  <script src="../js/cliente/minha-conta.js"></script>
+</body>
+</html>

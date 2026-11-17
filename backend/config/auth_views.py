@@ -4,9 +4,17 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
+from rest_framework.decorators import throttle_classes
+from rest_framework.throttling import AnonRateThrottle
+
+
+class AdminLoginThrottle(AnonRateThrottle):
+    scope = 'admin_login'
+    rate = '10/hour'
 
 
 @api_view(['POST'])
+@throttle_classes([AdminLoginThrottle])
 def admin_login(request):
     username = request.data.get('username')
     password = request.data.get('password')

@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db import transaction
 from django.db.models import F
 from config.permissions import IsAdminUser
+from users.permissoes import IsCliente
 
 
 
@@ -26,7 +27,10 @@ from configuracao_laje.models import ConfiguracaoReserva
 
 from .models import StatusReserva, Reserva
 from .serializers import StatusReservaSerializer, ReservaSerializer
-from .disponibilidade import existe_conflito, travar_agenda
+from .disponibilidade import (
+    existe_conflito, existe_dia_bloqueado, travar_agenda,
+)
+from dias_bloqueados.models import DiaBloqueado
 from .regras import (
     DURACAO_BASE_HORAS,
     calcular_cancelamento,
@@ -47,7 +51,29 @@ class ReservaViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAdminUser]
 
+
+@api_view(['GET'])
+def disponibilidade_publica(request):
+    """Devolve somente datas ocupadas/bloqueadas, sem dados de clientes."""
+    datas_reservadas = set()
+    reservas_ativas = Reserva.objects.exclude(
+        status__nome='CANCELADA'
+    ).only('data_reserva', 'hora_inicio', 'hora_fim')
+    for reserva in reservas_ativas:
+        datas_reservadas.add(reserva.data_reserva)
+        if reserva.hora_fim <= reserva.hora_inicio:
+            datas_reservadas.add(
+                reserva.data_reserva + timedelta(days=1)
+            )
+    datas_bloqueadas = set(
+        DiaBloqueado.objects.values_list('data', flat=True)
+    )
+    datas = sorted(datas_reservadas | datas_bloqueadas)
+    return Response({'datas_indisponiveis': [data.isoformat() for data in datas]})
+
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsCliente])
 def consultar_reserva(request):
     cpf = request.data.get('cpf')
     codigo_reserva = request.data.get('codigo_reserva')
@@ -60,6 +86,7 @@ def consultar_reserva(request):
 
     reserva = Reserva.objects.filter(
         cliente__cpf=cpf,
+        cliente__user=request.user,
         codigo_reserva=codigo_reserva
     ).first()
 
@@ -80,6 +107,8 @@ def consultar_reserva(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsCliente])
 def solicitar_cancelamento(request):
     cpf = request.data.get('cpf')
     codigo_reserva = request.data.get('codigo_reserva')
@@ -94,6 +123,7 @@ def solicitar_cancelamento(request):
     # 2. Localizar a reserva do cliente
     reserva = Reserva.objects.filter(
         cliente__cpf=cpf,
+        cliente__user=request.user,
         codigo_reserva=codigo_reserva
     ).first()
 
@@ -176,6 +206,8 @@ def solicitar_cancelamento(request):
 
 
 @api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsCliente])
 @transaction.atomic
 def solicitar_alteracao(request):
     cpf = request.data.get('cpf')
@@ -200,6 +232,7 @@ def solicitar_alteracao(request):
 
     reserva = Reserva.objects.filter(
         cliente__cpf=cpf,
+        cliente__user=request.user,
         codigo_reserva=codigo_reserva
     ).first()
 
@@ -364,6 +397,12 @@ def aprovar_alteracao(request):
     if existe_conflito(inicio_dt, fim_dt, excluir_id=reserva.id):
         return Response(
             {'erro': 'O novo horário não está mais disponível. Rejeite a alteração.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if existe_dia_bloqueado(inicio_dt, fim_dt):
+        return Response(
+            {'erro': 'A nova data estÃ¡ bloqueada. Rejeite a alteraÃ§Ã£o.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -769,6 +808,12 @@ def criar_reserva(request):
         # 6. Trava a agenda e verifica conflitos de horário
         # (reservas canceladas não bloqueiam o horário)
         travar_agenda()
+
+        if existe_dia_bloqueado(inicio_dt, fim_dt):
+            return Response(
+                {"erro": "A data escolhida está bloqueada. Selecione outra data."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if existe_conflito(inicio_dt, fim_dt):
             return Response(

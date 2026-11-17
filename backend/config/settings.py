@@ -24,9 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in config(
+        'ALLOWED_HOSTS', default='localhost,127.0.0.1'
+    ).split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -140,7 +146,17 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = config(
+    'CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool
+)
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in config(
+        'CORS_ALLOWED_ORIGINS',
+        default='http://localhost:5500,http://127.0.0.1:5500'
+    ).split(',')
+    if origin.strip()
+]
 
 # E-mail: em desenvolvimento, as mensagens aparecem no terminal
 EMAIL_BACKEND = config(
@@ -159,5 +175,6 @@ FRONTEND_URL = config('FRONTEND_URL', default='http://127.0.0.1:5500')
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'cadastro': '10/hour',
+        'admin_login': '10/hour',
     },
 }

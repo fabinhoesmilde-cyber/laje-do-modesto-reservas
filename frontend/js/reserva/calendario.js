@@ -19,7 +19,7 @@ async function carregarDatasBloqueadas() {
     try {
 
         const resposta = await fetch(
-            "http://127.0.0.1:8000/api/reservas/"
+            "http://127.0.0.1:8000/api/disponibilidade/"
         );
 
         if (!resposta.ok) {
@@ -28,15 +28,8 @@ async function carregarDatasBloqueadas() {
 
         }
 
-        const reservas = await resposta.json();
-
-        datasBloqueadas = reservas
-            .filter(reserva => reserva.status_nome !== "CANCELADA")
-            .map(reserva => reserva.data_reserva);
-
-        console.log("Datas bloqueadas:");
-
-        console.table(datasBloqueadas);
+        const dados = await resposta.json();
+        datasBloqueadas = dados.datas_indisponiveis || [];
 
     } catch (erro) {
 
@@ -117,6 +110,11 @@ dateClick: selecionarData
 // ======================================
 
 function selecionarData(info) {
+
+    if (datasBloqueadas.includes(info.dateStr)) {
+        alert("Essa data está indisponível. Escolha outra data.");
+        return;
+    }
 
     controller.selecionarData(info.dateStr);
 

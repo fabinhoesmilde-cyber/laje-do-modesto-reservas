@@ -1,207 +1,324 @@
-const formConsulta = document.getElementById("formConsultaReserva");
-const resultadoConsulta = document.getElementById("resultadoConsulta");
+const listaReservas = document.getElementById("listaReservas");
+const mensagemConta = document.getElementById("mensagemConta");
+const dadosConta = document.getElementById("dadosConta");
+const formDados = document.getElementById("formDados");
+const mensagemDados = document.getElementById("mensagemDados");
 
-const API_URL = "http://127.0.0.1:8000/api";
+const NOMES_STATUS = {
+    CONFIRMADA: "Confirmada",
+    CANCELADA: "Cancelada",
+    CANCELAMENTO_SOLICITADO: "Cancelamento aguardando aprovação",
+    ALTERACAO_SOLICITADA: "Alteração aguardando aprovação"
+};
 
-let ultimaConsulta = null;
-
-function formatarData(data) {
-    const [ano, mes, dia] = data.split("-");
-    return `${dia}/${mes}/${ano}`;
+function classeDoStatus(status) {
+    if (status === "CONFIRMADA") return "st-confirmada";
+    if (status === "CANCELADA") return "st-cancelada";
+    return "st-pendente";
 }
 
-function formatarHora(hora) {
-    return hora.substring(0, 5);
+// ---------- dados do cliente ----------
+
+function mostrarDados(cliente) {
+    dadosConta.replaceChildren(
+        criar("p", `E-mail: ${cliente.email}`),
+        criar("p", `CPF: ${cliente.cpf}`)
+    );
+
+    document.getElementById("nome").value = cliente.nome;
+    document.getElementById("telefone").value = cliente.telefone;
 }
 
-formConsulta.addEventListener("submit", async function (event) {
+formDados.addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    resultadoConsulta.innerHTML = "<p>Buscando reserva...</p>";
+    mostrarMensagem(mensagemDados, "Salvando...", "");
 
-    const cpfDigitado = document.getElementById("cpfConsulta").value.trim();
-    const codigoDigitado = document
-        .getElementById("codigoReservaConsulta")
-        .value
-        .trim()
-        .toUpperCase();
-
-    try {
-        const resposta = await fetch(`${API_URL}/consultar-reserva/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                cpf: cpfDigitado,
-                codigo_reserva: codigoDigitado
-            })
-        });
-
-        const dados = await resposta.json();
-
-        if (!resposta.ok) {
-            resultadoConsulta.innerHTML = `<p>${dados.erro}</p>`;
-            return;
+    const resultado = await chamarApi("/cliente/meus-dados/", {
+        metodo: "PATCH",
+        autenticado: true,
+        corpo: {
+            nome: document.getElementById("nome").value.trim(),
+            telefone: document.getElementById("telefone").value.trim()
         }
+    });
 
-        ultimaConsulta = {
-            cpf: cpfDigitado,
-            codigo_reserva: codigoDigitado
-        };
-
-        resultadoConsulta.innerHTML = `
-    <div class="painel-reserva">
-        <h2>Minha Reserva</h2>
-
-        <div class="linha-info">
-            <span>Código</span>
-            <strong>${dados.codigo_reserva}</strong>
-        </div>
-
-        <div class="linha-info">
-            <span>Data</span>
-            <strong>${formatarData(dados.data_reserva)}</strong>
-        </div>
-
-        <div class="linha-info">
-            <span>Horário</span>
-            <strong>${formatarHora(dados.hora_inicio)} às ${formatarHora(dados.hora_fim)}</strong>
-        </div>
-
-        <div class="linha-info">
-            <span>Status</span>
-            <strong>${dados.status}</strong>
-        </div>
-
-        <div class="acoes-reserva">
-            <button onclick="solicitarCancelamento()" class="btn-cancelar">
-                Solicitar cancelamento
-            </button>
-
-            <button onclick="abrirAlteracao()" class="btn-alterar">
-                Solicitar alteração de data
-            </button>
-        </div>
-    </div>
-`;
-
-    } catch (erro) {
-        console.error(erro);
-        resultadoConsulta.innerHTML = "<p>Erro ao consultar reserva.</p>";
+    if (!resultado.ok) {
+        mostrarMensagem(
+            mensagemDados,
+            resultado.dados.erro || "Não foi possível salvar.",
+            "erro"
+        );
+        return;
     }
+
+    mostrarDados(resultado.dados);
+    mostrarMensagem(mensagemDados, "Dados atualizados.", "ok");
 });
 
-async function solicitarCancelamento() {
-    if (!ultimaConsulta) {
-        alert("Consulte uma reserva primeiro.");
-        return;
-    }
+// ---------- reservas ----------
 
-    const confirmar = confirm(
-        "Deseja realmente solicitar o cancelamento desta reserva?"
+function linha(rotulo, valor) {
+    const div = criar("div", null, "linha-info");
+    div.append(criar("span", rotulo), criar("strong", valor));
+    return div;
+}
+
+function fecharCaixas(cartao) {
+    cartao.querySelectorAll(".caixa-acao").forEach((c) => c.remove());
+}
+
+function montarCartao(reserva) {
+    const cartao = criar(
+        "article", null, `cartao-reserva ${classeDoStatus(reserva.status)}`
     );
 
-    if (!confirmar) {
-        return;
+    cartao.append(criar("h3", `Reserva ${reserva.codigo_reserva}`));
+    cartao.append(linha("Data", formatarData(reserva.data_reserva)));
+    cartao.append(linha(
+        "Horário",
+        `${formatarHora(reserva.hora_inicio)} às ${formatarHora(reserva.hora_fim)}`
+    ));
+    cartao.append(linha("Valor total", formatarReais(reserva.valor_total)));
+
+    const linhaStatus = criar("div", null, "linha-info");
+    linhaStatus.append(
+        criar("span", "Situação"),
+        criar("span", NOMES_STATUS[reserva.status] || reserva.status, "selo-status")
+    );
+    cartao.append(linhaStatus);
+
+    if (reserva.alteracao_solicitada) {
+        const pedido = reserva.alteracao_solicitada;
+        const hora = pedido.novo_horario_inicio
+            ? ` às ${pedido.novo_horario_inicio}`
+            : "";
+        cartao.append(linha(
+            "Alteração pedida",
+            `${formatarData(pedido.nova_data)}${hora}`
+        ));
     }
 
-    try {
-        const resposta = await fetch(`${API_URL}/solicitar-cancelamento/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(ultimaConsulta)
-        });
+    if (reserva.taxa_cancelamento !== undefined) {
+        cartao.append(linha(
+            "Taxa de cancelamento",
+            formatarReais(reserva.taxa_cancelamento)
+        ));
+        cartao.append(linha(
+            "Valor a devolver",
+            formatarReais(reserva.valor_reembolso)
+        ));
+    }
 
-        const dados = await resposta.json();
+    if (reserva.pode_cancelar || reserva.pode_alterar) {
+        const acoes = criar("div", null, "acoes-reserva");
 
-        if (!resposta.ok) {
-            alert(dados.erro || "Erro ao solicitar cancelamento.");
+        if (reserva.pode_alterar) {
+            const botao = criar("button", "Alterar data ou horário", "btn-alterar");
+            botao.type = "button";
+            botao.addEventListener("click", () => abrirAlteracao(cartao, reserva));
+            acoes.append(botao);
+        }
+
+        if (reserva.pode_cancelar) {
+            const botao = criar("button", "Cancelar reserva", "btn-cancelar");
+            botao.type = "button";
+            botao.addEventListener("click", () => abrirCancelamento(cartao, reserva));
+            acoes.append(botao);
+        }
+
+        cartao.append(acoes);
+    }
+
+    return cartao;
+}
+
+function abrirCancelamento(cartao, reserva) {
+    fecharCaixas(cartao);
+
+    const previa = reserva.previa_cancelamento;
+    const caixa = criar("div", null, "caixa-acao");
+
+    if (previa.dentro_do_prazo) {
+        caixa.append(criar(
+            "p",
+            `Cancelamento sem taxa. Valor a devolver: ${formatarReais(previa.reembolso)}.`
+        ));
+    } else {
+        caixa.append(criar(
+            "p",
+            `Faltam menos de 7 dias para o evento: será cobrada uma taxa de ` +
+            `${formatarReais(previa.taxa)} e o valor a devolver é ` +
+            `${formatarReais(previa.reembolso)}. O pedido depende de ` +
+            `aprovação da Laje do Modesto.`
+        ));
+    }
+
+    const aviso = criar("p", null, "msg");
+    const acoes = criar("div", null, "acoes-reserva");
+
+    const confirmar = criar("button", "Confirmar cancelamento", "btn-cancelar");
+    confirmar.type = "button";
+    confirmar.addEventListener("click", async () => {
+        confirmar.disabled = true;
+        mostrarMensagem(aviso, "Enviando...", "");
+
+        const resultado = await chamarApi(
+            `/cliente/minhas-reservas/${encodeURIComponent(reserva.codigo_reserva)}/cancelar/`,
+            { metodo: "POST", autenticado: true }
+        );
+
+        if (!resultado.ok) {
+            confirmar.disabled = false;
+            mostrarMensagem(
+                aviso,
+                resultado.dados.erro || "Não foi possível cancelar.",
+                "erro"
+            );
             return;
         }
 
-        alert(dados.mensagem);
+        await carregarReservas();
+        mostrarMensagem(mensagemConta, resultado.dados.mensagem, "ok");
+    });
 
-        resultadoConsulta.innerHTML += `
-            <p><strong>Status atualizado:</strong> ${dados.status}</p>
-        `;
+    const voltar = criar("button", "Voltar", "btn-secundario");
+    voltar.type = "button";
+    voltar.addEventListener("click", () => caixa.remove());
 
-    } catch (erro) {
-        console.error(erro);
-        alert("Erro de conexão com a API.");
+    acoes.append(confirmar, voltar);
+    caixa.append(aviso, acoes);
+    cartao.append(caixa);
+}
+
+function abrirAlteracao(cartao, reserva) {
+    fecharCaixas(cartao);
+
+    const caixa = criar("div", null, "caixa-acao");
+    caixa.append(criar(
+        "p",
+        "Escolha a nova data e o horário de início. A duração da sua festa " +
+        "é mantida. O pedido depende de aprovação, e o seu horário atual " +
+        "continua reservado até lá."
+    ));
+
+    const form = document.createElement("form");
+
+    const rotuloData = criar("label", "Nova data");
+    const campoData = document.createElement("input");
+    campoData.type = "date";
+    campoData.min = dataDeHoje();
+    campoData.required = true;
+
+    const rotuloHora = criar("label", "Novo horário de início");
+    const campoHora = document.createElement("select");
+    campoHora.required = true;
+    campoHora.className = "campo-select";
+
+    for (let hora = 8; hora <= 21; hora++) {
+        const texto = `${String(hora).padStart(2, "0")}:00`;
+        const opcao = criar("option", texto);
+        opcao.value = texto;
+        campoHora.append(opcao);
     }
-}
-function abrirAlteracao() {
 
-    const novaData = prompt(
-        "Digite a nova data (AAAA-MM-DD):"
-    );
+    const aviso = criar("p", null, "msg");
+    const acoes = criar("div", null, "acoes-reserva");
 
-    if (!novaData) return;
+    const enviar = criar("button", "Enviar pedido", "btn-alterar");
+    enviar.type = "submit";
 
-    const novoInicio = prompt(
-        "Digite o novo horário inicial (HH:MM):"
-    );
+    const voltar = criar("button", "Voltar", "btn-secundario");
+    voltar.type = "button";
+    voltar.addEventListener("click", () => caixa.remove());
 
-    if (!novoInicio) return;
+    acoes.append(enviar, voltar);
+    form.append(rotuloData, campoData, rotuloHora, campoHora, aviso, acoes);
+    caixa.append(form);
+    cartao.append(caixa);
 
-    const novoFim = prompt(
-        "Digite o novo horário final (HH:MM):"
-    );
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-    if (!novoFim) return;
+        enviar.disabled = true;
+        mostrarMensagem(aviso, "Enviando...", "");
 
-    solicitarAlteracao(
-        novaData,
-        novoInicio,
-        novoFim
-    );
-}
-
-async function solicitarAlteracao(
-    novaData,
-    novoInicio,
-    novoFim
-) {
-
-    try {
-
-        const resposta = await fetch(
-            `${API_URL}/solicitar-alteracao/`,
+        const resultado = await chamarApi(
+            `/cliente/minhas-reservas/${encodeURIComponent(reserva.codigo_reserva)}/alterar/`,
             {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    cpf: ultimaConsulta.cpf,
-                    codigo_reserva:
-                        ultimaConsulta.codigo_reserva,
-
-                    nova_data: novaData,
-                    novo_horario_inicio: novoInicio,
-                    novo_horario_fim: novoFim
-                })
+                metodo: "POST",
+                autenticado: true,
+                corpo: {
+                    nova_data: campoData.value,
+                    novo_horario_inicio: campoHora.value
+                }
             }
         );
 
-        const dados = await resposta.json();
-
-        if (!resposta.ok) {
-            alert(dados.erro);
+        if (!resultado.ok) {
+            enviar.disabled = false;
+            mostrarMensagem(
+                aviso,
+                resultado.dados.erro || "Não foi possível enviar o pedido.",
+                "erro"
+            );
             return;
         }
 
-        alert(dados.mensagem);
-
-    } catch (erro) {
-
-        console.error(erro);
-
-        alert(
-            "Erro ao solicitar alteração."
-        );
-    }
+        await carregarReservas();
+        mostrarMensagem(mensagemConta, resultado.dados.mensagem, "ok");
+    });
 }
+
+async function carregarReservas() {
+    const resultado = await chamarApi("/cliente/minhas-reservas/", {
+        autenticado: true
+    });
+
+    if (!resultado.ok) {
+        listaReservas.replaceChildren(criar(
+            "p", resultado.dados.erro || "Não foi possível carregar as reservas."
+        ));
+        return;
+    }
+
+    if (resultado.dados.length === 0) {
+        listaReservas.replaceChildren(
+            criar("p", "Você ainda não tem reservas.")
+        );
+        return;
+    }
+
+    listaReservas.replaceChildren(...resultado.dados.map(montarCartao));
+}
+
+// ---------- sair e início ----------
+
+document.getElementById("botaoSair").addEventListener("click", async () => {
+    await chamarApi("/cliente/logout/", { metodo: "POST", autenticado: true });
+    apagarToken();
+    window.location.href = "entrar.html";
+});
+
+async function iniciar() {
+    if (!lerToken()) {
+        window.location.href = "entrar.html";
+        return;
+    }
+
+    const dados = await chamarApi("/cliente/meus-dados/", { autenticado: true });
+
+    if (!dados.ok) {
+        mostrarMensagem(
+            mensagemConta,
+            dados.dados.erro || "Não foi possível carregar sua conta.",
+            "erro"
+        );
+        return;
+    }
+
+    mostrarDados(dados.dados);
+    await carregarReservas();
+}
+
+iniciar();

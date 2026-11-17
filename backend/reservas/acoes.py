@@ -7,7 +7,9 @@ from datetime import datetime, timedelta
 
 from django.utils import timezone
 
-from .disponibilidade import existe_conflito, travar_agenda
+from .disponibilidade import (
+    existe_conflito, existe_dia_bloqueado, travar_agenda,
+)
 from .models import StatusReserva
 from .regras import (
     DURACAO_BASE_HORAS,
@@ -150,6 +152,11 @@ def pedir_alteracao(reserva, nova_data, novo_horario_inicio):
     # Trava a agenda e confere se o novo horário está livre.
     # A própria reserva é ignorada (pode se sobrepor ao horário antigo).
     travar_agenda()
+
+    if existe_dia_bloqueado(inicio_dt, fim_dt):
+        raise ErroDeRegra(
+            'A nova data solicitada está bloqueada. Escolha outra data.'
+        )
 
     if existe_conflito(inicio_dt, fim_dt, excluir_id=reserva.id):
         raise ErroDeRegra(

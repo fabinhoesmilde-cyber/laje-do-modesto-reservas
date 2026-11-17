@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from configuracao_laje.models import ConfiguracaoReserva
+from dias_bloqueados.models import DiaBloqueado
 
 from .models import Reserva
 
@@ -63,4 +64,15 @@ def existe_conflito(inicio_dt, fim_dt, excluir_id=None):
         if inicio_dt < fim_existente and fim_dt > inicio_existente:
             return True
 
+    return False
+
+
+def existe_dia_bloqueado(inicio_dt, fim_dt):
+    """Verifica se o intervalo da reserva toca alguma data bloqueada."""
+    data_atual = inicio_dt.date()
+    ultima_data = (fim_dt - timedelta(microseconds=1)).date()
+    while data_atual <= ultima_data:
+        if DiaBloqueado.objects.filter(data=data_atual).exists():
+            return True
+        data_atual += timedelta(days=1)
     return False

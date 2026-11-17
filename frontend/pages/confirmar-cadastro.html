@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Confirmar cadastro - Laje do Modesto</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/cliente.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Confirmar cadastro</h1>
+    <p>Seu e-mail foi verificado. Agora escolha uma senha para a sua conta.</p>
+
+    <form id="formSenha">
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" autocomplete="new-password" minlength="8" required>
+      <p class="dica">Use pelo menos 8 caracteres, sem ser só números nem uma senha comum.</p>
+
+      <label for="confirmacao">Repita a senha</label>
+      <input type="password" id="confirmacao" autocomplete="new-password" required>
+
+      <button type="submit" id="botaoSenha">Criar minha senha</button>
+    </form>
+
+    <p id="mensagemSenha" class="msg" role="status"></p>
+
+    <div id="linksFinais" class="links-auxiliares" hidden>
+      <a href="entrar.html">Entrar na minha conta</a>
+    </div>
+  </main>
+
+  <script src="../js/cliente/api.js"></script>
+  <script>
+    const CONFIG_LINK = {
+      caminho: "/cliente/confirmar-cadastro/",
+      sucesso: "Cadastro concluído. Agora você já pode entrar."
+    };
+  </script>
+  <script src="../js/cliente/senha_por_link.js"></script>
+</body>
+</html>

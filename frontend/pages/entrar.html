@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Entrar - Laje do Modesto</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/cliente.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Entrar</h1>
+    <p>Acesse sua conta para ver, cancelar ou alterar suas reservas.</p>
+
+    <form id="formEntrar">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" autocomplete="username" required>
+
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" autocomplete="current-password" required>
+
+      <button type="submit" id="botaoEntrar">Entrar</button>
+    </form>
+
+    <p id="mensagemEntrar" class="msg" role="status"></p>
+
+    <div class="links-auxiliares">
+      <a href="esqueci-senha.html">Esqueci minha senha</a><br>
+      <a href="cadastro.html">Criar conta</a><br>
+      <a href="index.html">Voltar para a home</a>
+    </div>
+  </main>
+
+  <script src="../js/cliente/api.js"></script>
+  <script src="../js/cliente/entrar.js"></script>
+</body>
+</html>
