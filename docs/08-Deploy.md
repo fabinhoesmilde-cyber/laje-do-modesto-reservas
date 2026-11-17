@@ -91,9 +91,25 @@ Antes do deploy, o sistema deverá atender aos seguintes requisitos:
 * HTTPS habilitado.
 * Banco de dados protegido.
 * Backup automático.
-* Token Authentication para o administrador.
+* Token Authentication para administrador e clientes, com permissões separadas.
 * Proteção contra acessos não autorizados.
 * Variáveis sensíveis armazenadas em arquivos de ambiente (.env).
+
+---
+
+# Checklist de Configuração antes do Deploy
+
+Itens que hoje estão com valores de desenvolvimento e **devem ser ajustados** na publicação:
+
+* `DEBUG = False`.
+* `ALLOWED_HOSTS` com o domínio real.
+* `CORS_ALLOWED_ORIGINS` apenas com o endereço do site (hoje aceita qualquer origem).
+* `SECRET_KEY` própria, fora do código (arquivo `.env`).
+* Banco PostgreSQL configurado por variáveis de ambiente.
+* **E-mail real:** em desenvolvimento os e-mails aparecem apenas no terminal. Em produção é preciso configurar um servidor SMTP (`EMAIL_BACKEND` e dados de acesso) e um `DEFAULT_FROM_EMAIL` válido. Sem isso, clientes não recebem o link de cadastro nem o de nova senha.
+* `FRONTEND_URL` com o endereço onde ficam as páginas do site (os links dos e-mails usam essa base).
+* Limites de tentativas (cadastro, login, confirmação, recuperação de senha e consulta pública) funcionando com um cache compartilhado, se houver mais de um processo do servidor.
+* Limite de tentativas também na consulta pública por CPF e código.
 
 ---
 
@@ -154,4 +170,4 @@ Após a primeira versão em produção, estão previstas as seguintes evoluçõe
 
 **Versão:** 1.0
 
-**Status:** Planejamento concluído
+**Status:** Planejamento concluído (atualizado para a Área do Cliente)

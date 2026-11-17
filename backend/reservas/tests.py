@@ -7,6 +7,7 @@ from adicionais.models import Adicional
 from clientes.models import Cliente
 from configuracao_laje.models import ConfiguracaoReserva
 from cupons.models import Cupom
+from reservas.apoio_testes import criar_login_do_cliente
 from reservas.models import StatusReserva, Reserva, ReservaAdicional
 
 
@@ -357,6 +358,7 @@ class TesteSolicitarAlteracao(TestCase):
             telefone="21999999999",
             email="maria@teste.com",
         )
+        self.login = criar_login_do_cliente(self.cliente)
 
         self.reserva = Reserva.objects.create(
             cliente=self.cliente,
@@ -370,17 +372,16 @@ class TesteSolicitarAlteracao(TestCase):
 
     def enviar(self, **extra):
         dados = {
-            "cpf": "123.456.789-00",
-            "codigo_reserva": self.reserva.codigo_reserva,
             "nova_data": str(date.today() + timedelta(days=20)),
             "novo_horario_inicio": "18:00",
             "novo_horario_fim": "23:00",
         }
         dados.update(extra)
         return self.client.post(
-            "/api/solicitar-alteracao/",
+            f"/api/cliente/minhas-reservas/{self.reserva.codigo_reserva}/alterar/",
             dados,
             content_type="application/json",
+            **self.login,
         )
 
     def test_alteracao_valida_muda_status(self):

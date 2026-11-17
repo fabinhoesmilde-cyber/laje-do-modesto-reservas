@@ -12,7 +12,7 @@ Este manual orienta o cliente sobre como utilizar o sistema **Laje do Modesto Re
 
 O cliente poderá acessar o sistema através do navegador do celular, tablet ou computador.
 
-Não será necessário criar uma conta para utilizar o sistema.
+Para **reservar**, não é necessário criar uma conta. Para **ver suas reservas, cancelar ou alterar**, você precisa de uma conta, que é gratuita e leva poucos minutos.
 
 ---
 
@@ -59,39 +59,59 @@ A reserva somente será confirmada após a confirmação do pagamento integral.
 
 # Consulta da Reserva
 
-O cliente poderá consultar sua reserva utilizando:
+Sem login, você pode consultar uma reserva informando:
 
 * CPF
 * Código da Reserva
 
-O sistema exibirá:
-
-* Data do evento.
-* Horário.
-* Status.
-* Valor pago.
-* Informações da reserva.
+O sistema mostra o código, a data, o horário e o status. Para cancelar ou alterar, use a sua conta.
 
 ---
 
-# Solicitação de Alteração
+# Criando sua Conta
 
-Caso seja necessário alterar a data ou horário do evento, o cliente poderá enviar uma solicitação diretamente pelo sistema.
+1. Acesse **Criar conta** e informe nome, e-mail, CPF e telefone.
+2. Abra o e-mail que enviamos (veja também o spam) e clique no link. Ele vale por **24 horas** e só pode ser usado uma vez.
+3. Escolha sua senha (mínimo de 8 caracteres, que não seja só números nem uma senha comum).
+4. Pronto! Entre com seu e-mail e a senha.
 
-A alteração dependerá da aprovação do administrador.
+Se você já fez reservas antes com esse mesmo e-mail, elas aparecem na sua conta.
 
 ---
 
-# Solicitação de Cancelamento
+# Entrando e Esquecendo a Senha
 
-O cliente poderá solicitar o cancelamento da reserva.
+Entre com **e-mail e senha**. Se esquecer a senha, clique em **Esqueci minha senha**, informe o e-mail e siga o link que enviaremos (válido por **1 hora**). Ao criar a nova senha, você é desconectado dos outros aparelhos.
 
-O pedido será analisado pelo administrador.
+---
+
+# Minha Conta
+
+Na **Minha Conta** você vê:
+
+* Seus dados (você pode alterar nome e telefone).
+* Todas as suas reservas, com data, horário, valor e situação.
+
+---
+
+# Alteração de Data e Horário
+
+Em uma reserva confirmada, clique em **Alterar data ou horário**, escolha a nova data e o horário de início (hora cheia, das 08:00 às 21:00) e envie o pedido.
+
+* A duração da sua festa é mantida.
+* O pedido depende da aprovação do administrador.
+* Enquanto isso, o seu horário atual continua reservado para você.
+
+---
+
+# Cancelamento
+
+Em uma reserva confirmada, clique em **Cancelar reserva**. Antes de confirmar, o sistema mostra quanto será cobrado de taxa e quanto será devolvido.
 
 ### Política de Cancelamento
 
-* Cancelamentos realizados com até **7 dias de antecedência** terão direito ao reembolso integral.
-* Cancelamentos realizados com menos de **7 dias** estarão sujeitos à política de cobrança da Laje do Modesto.
+* Cancelamentos até **7 dias antes do evento**: cancelamento imediato, **sem taxa**, com devolução integral.
+* Cancelamentos com menos de **7 dias**: taxa de **20% do valor total**. O pedido fica aguardando a aprovação do administrador.
 
 ---
 
@@ -111,6 +131,8 @@ O cliente deverá observar as seguintes regras:
 # Recomendações
 
 * Guarde o Código da Reserva.
+* Crie sua conta para poder acompanhar, alterar ou cancelar suas reservas.
+* Use um e-mail que você acessa, pois é por ele que enviamos os links.
 * Confira todas as informações antes de concluir a reserva.
 * Em caso de dúvidas, entre em contato com a administração da Laje do Modesto.
 
@@ -122,6 +144,6 @@ O sistema foi desenvolvido para tornar o processo de reserva simples, rápido e 
 
 ---
 
-**Versão:** 1.0
+**Versão:** 1.1
 
 **Status:** Em desenvolvimento

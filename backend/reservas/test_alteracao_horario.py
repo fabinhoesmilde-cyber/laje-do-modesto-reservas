@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from clientes.models import Cliente
 from configuracao_laje.models import ConfiguracaoReserva
+from reservas.apoio_testes import criar_login_do_cliente
 from reservas.models import Reserva, StatusReserva
 
 
@@ -24,6 +25,7 @@ class TesteAlteracaoComConflito(TestCase):
             telefone="21999999999",
             email="maria@teste.com",
         )
+        self.login = criar_login_do_cliente(self.cliente)
 
         self.data = date.today() + timedelta(days=10)
         self.outra_data = date.today() + timedelta(days=20)
@@ -45,16 +47,15 @@ class TesteAlteracaoComConflito(TestCase):
     def alterar(self, nova_data, novo_inicio, reserva=None, **extra):
         reserva = reserva or self.reserva
         dados = {
-            "cpf": "123.456.789-00",
-            "codigo_reserva": reserva.codigo_reserva,
             "nova_data": str(nova_data),
             "novo_horario_inicio": novo_inicio,
         }
         dados.update(extra)
         return self.client.post(
-            "/api/solicitar-alteracao/",
+            f"/api/cliente/minhas-reservas/{reserva.codigo_reserva}/alterar/",
             dados,
             content_type="application/json",
+            **self.login,
         )
 
     def test_novo_horario_ocupado_e_recusado(self):

@@ -50,6 +50,14 @@ Essa decisão foi tomada para garantir tempo adequado para limpeza, organizaçã
 
 ---
 
+## RN-105 — Horário de início e duração
+
+O início da festa deve ser em **hora cheia, entre 08:00 e 21:00**.
+
+A duração base é de **8 horas**. O cliente pode contratar horas extras, desde que o término continue sendo, no máximo, às 05:00 da manhã seguinte.
+
+---
+
 # RN-200 — Regras de Pagamento
 
 ## RN-201 — Pagamento obrigatório
@@ -95,11 +103,26 @@ A confirmação do pagamento integral será suficiente para validar a reserva.
 
 ## RN-206 — Cancelamento
 
-Caso o cliente solicite o cancelamento com até **7 dias de antecedência**, terá direito ao reembolso integral do valor pago.
+Só reservas **confirmadas** e de **data futura** podem ser canceladas, e somente pelo próprio cliente logado.
 
-Solicitações realizadas com menos de 7 dias poderão sofrer cobrança conforme a política da Laje do Modesto.
+* **Até 7 dias antes do evento:** o cancelamento é automático, sem taxa, com reembolso integral do valor pago.
+* **Com menos de 7 dias:** é cobrada taxa de **20% do valor total** da reserva. O pedido fica em `CANCELAMENTO_SOLICITADO` e depende da aprovação do administrador.
 
-A aprovação final continuará sendo realizada pelo administrador.
+A taxa e o valor a devolver são calculados no momento do pedido e guardados na reserva. Antes de confirmar, o cliente vê esses valores.
+
+Enquanto o pagamento online não estiver integrado, a devolução do dinheiro é feita manualmente.
+
+---
+
+## RN-207 — Alteração de data e horário
+
+Só reservas **confirmadas** e de **data futura** podem ter alteração solicitada, e somente pelo próprio cliente logado.
+
+* A duração contratada (8 horas + horas extras) é mantida; quem calcula o novo término é o sistema.
+* O novo início segue a RN-105 e o término não pode passar das 05:00.
+* O novo horário não pode conflitar com outra reserva.
+* Enquanto o pedido está pendente, o **horário original continua bloqueado** para outros clientes.
+* O administrador aprova ou rejeita. Na aprovação, o sistema confere de novo se o horário continua livre.
 
 ---
 
@@ -129,12 +152,12 @@ O sistema não realizará controle desses itens.
 
 ## RN-304 — Consulta da reserva
 
-O cliente consultará sua reserva utilizando:
+A consulta pública, somente leitura, utiliza:
 
 * CPF
 * Código da reserva
 
-Não será necessário criar conta ou realizar login.
+Não é necessário criar conta ou realizar login para consultar. **Cancelar e alterar exigem login** (RN-500).
 
 ---
 
@@ -162,6 +185,42 @@ Datas bloqueadas não poderão ser reservadas pelos clientes.
 
 ---
 
+# RN-500 — Regras da Conta do Cliente
+
+## RN-501 — Conta opcional
+
+O cliente pode reservar sem criar conta. A conta é necessária para cancelar ou alterar reservas pelo sistema.
+
+## RN-502 — Cadastro com confirmação de e-mail
+
+O cadastro pede nome, e-mail, CPF e telefone. O sistema envia um link ao e-mail informado, válido por **24 horas** e de **uso único**. A conta só é criada, e a senha só é escolhida, depois que o cliente abre o link.
+
+## RN-503 — Login
+
+O login é feito com **e-mail e senha**. Contas do administrador não entram pela Área do Cliente.
+
+## RN-504 — Reservas anteriores
+
+Se o cliente já reservou como visitante com o mesmo e-mail, a conta passa a ser dele e essas reservas aparecem na Área do Cliente. Como o e-mail foi confirmado, ninguém consegue "pegar" reservas de outra pessoa criando uma conta.
+
+## RN-505 — CPF e e-mail
+
+Um CPF que já pertence a um cliente com outro e-mail não pode ser usado em um novo cadastro.
+
+## RN-506 — Recuperação de senha
+
+O cliente pede um link por e-mail, válido por **1 hora** e de **uso único**. Ao criar a nova senha, todos os logins abertos são encerrados.
+
+## RN-507 — Privacidade
+
+Cada cliente só vê e age sobre as próprias reservas. O sistema responde da mesma forma exista ou não uma conta com o e-mail informado, para não revelar quem é cliente.
+
+## RN-508 — Limites de tentativas
+
+Cadastro, login, confirmação e recuperação de senha têm limite de tentativas por hora, para dificultar abusos.
+
+---
+
 # Observações
 
 Toda nova funcionalidade implementada deverá respeitar as regras deste documento.
@@ -170,6 +229,6 @@ Caso uma nova regra seja criada futuramente, este documento deverá ser atualiza
 
 ---
 
-**Versão:** 1.0
+**Versão:** 1.1
 
 **Status:** Em desenvolvimento

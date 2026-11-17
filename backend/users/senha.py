@@ -87,7 +87,7 @@ def criar_reinicio(usuario):
 
 def enviar_email_reinicio(usuario, token):
     base = settings.FRONTEND_URL.rstrip("/")
-    link = f"{base}/redefinir_senha.html?token={token}"
+    link = f"{base}/redefinir-senha.html?token={token}"
     nome = usuario.first_name or "cliente"
 
     mensagem = (

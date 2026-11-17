@@ -68,7 +68,8 @@ Responsabilidades:
 * Gerenciar reservas.
 * Gerenciar clientes.
 * Gerenciar pagamentos.
-* Gerenciar autenticação.
+* Gerenciar autenticação (administrador e clientes).
+* Enviar e-mails de confirmação de cadastro e de recuperação de senha.
 * Aplicar as regras de negócio.
 
 Toda decisão importante acontece no Backend.
@@ -94,6 +95,7 @@ O banco armazenará:
 * Adicionais.
 * Status.
 * Tokens.
+* Contas de usuário, cadastros pendentes de confirmação e pedidos de nova senha.
 
 ---
 
@@ -120,11 +122,14 @@ Servidor responde:
 
 # Segurança
 
-O painel administrativo será protegido utilizando Token Authentication.
+Administrador e clientes usam Token Authentication, com permissões separadas:
 
-Clientes não precisarão realizar login.
+* O painel administrativo só aceita contas de administrador.
+* A Área do Cliente só aceita contas de cliente (conta ativa, que não é da equipe e está ligada a um cadastro de cliente).
+* A reserva pode ser feita sem login. Consultar por CPF e código também não exige login, mas essa consulta é somente leitura.
+* Cancelar e alterar exigem login, e o backend confere que a reserva pertence ao cliente logado.
 
-Somente o administrador possuirá autenticação.
+Os links enviados por e-mail (confirmar cadastro e nova senha) usam tokens de uso único e com validade; no banco fica apenas o hash do token.
 
 ---
 
@@ -133,10 +138,12 @@ Somente o administrador possuirá autenticação.
 backend/
 
 * clientes
-* reservas
+* reservas (regras de negócio em `regras.py`, agenda em `disponibilidade.py`, ações em `acoes.py`)
+* users (Área do Cliente: cadastro, login, senha, minhas reservas)
 * pagamentos
 * adicionais
 * cupons
+* configuracao_laje, configuracoes, dias_bloqueados
 
 frontend/
 
@@ -162,6 +169,6 @@ Novos módulos poderão ser adicionados mantendo a organização do projeto.
 
 ---
 
-Versão: 1.0
+Versão: 1.1
 
 Status: Em desenvolvimento

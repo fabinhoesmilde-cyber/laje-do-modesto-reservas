@@ -33,6 +33,9 @@ Atualmente o sistema é composto pelas seguintes entidades:
 * Adicionais
 * Pagamentos
 * Usuário Administrador
+* Conta do Cliente (usuário ligado ao cliente)
+* Cadastro Pendente
+* Reinício de Senha
 
 ---
 
@@ -48,6 +51,8 @@ Principais informações:
 * E-mail
 
 Cada cliente poderá possuir várias reservas.
+
+O cliente pode ter, opcionalmente, uma **conta de acesso** (um usuário). Quem reservou como visitante não tem conta. Se a conta for apagada, o cliente e as reservas permanecem.
 
 ---
 
@@ -67,6 +72,13 @@ Cada reserva possui:
 * Status
 * Forma de pagamento
 
+Também guarda, entre outros:
+
+* Valores: base, desconto, adicionais e total.
+* Horas extras contratadas.
+* Pedido de alteração pendente (nova data e novo horário).
+* Dados do cancelamento: taxa, valor a devolver e data do cancelamento.
+
 Também poderá possuir:
 
 * Cupons
@@ -85,6 +97,18 @@ Exemplos:
 * CANCELADA
 * ALTERACAO_SOLICITADA
 * CANCELAMENTO_SOLICITADO
+
+---
+
+# Cadastro Pendente
+
+Guarda o pedido de cadastro até o cliente confirmar o e-mail: nome, e-mail, CPF, telefone, validade e data de uso. Não guarda senha e guarda apenas o **hash** do token enviado por e-mail.
+
+---
+
+# Reinício de Senha
+
+Guarda o pedido de "esqueci minha senha": usuário, validade e data de uso. Também guarda apenas o hash do token.
 
 ---
 
@@ -159,6 +183,6 @@ A estrutura do banco foi planejada para facilitar futuras expansões do sistema 
 
 ---
 
-**Versão:** 1.0
+**Versão:** 1.1
 
 **Status:** Em desenvolvimento

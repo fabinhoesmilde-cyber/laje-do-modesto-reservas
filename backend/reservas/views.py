@@ -2,7 +2,6 @@ from decimal import Decimal
 from django.db import transaction
 from django.db.models import F
 from config.permissions import IsAdminUser
-from users.permissoes import IsCliente
 
 
 
@@ -27,10 +26,7 @@ from configuracao_laje.models import ConfiguracaoReserva
 
 from .models import StatusReserva, Reserva
 from .serializers import StatusReservaSerializer, ReservaSerializer
-from .disponibilidade import (
-    existe_conflito, existe_dia_bloqueado, travar_agenda,
-)
-from dias_bloqueados.models import DiaBloqueado
+from .disponibilidade import existe_conflito, travar_agenda
 from .regras import (
     DURACAO_BASE_HORAS,
     calcular_cancelamento,
@@ -51,29 +47,7 @@ class ReservaViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAdminUser]
 
-
-@api_view(['GET'])
-def disponibilidade_publica(request):
-    """Devolve somente datas ocupadas/bloqueadas, sem dados de clientes."""
-    datas_reservadas = set()
-    reservas_ativas = Reserva.objects.exclude(
-        status__nome='CANCELADA'
-    ).only('data_reserva', 'hora_inicio', 'hora_fim')
-    for reserva in reservas_ativas:
-        datas_reservadas.add(reserva.data_reserva)
-        if reserva.hora_fim <= reserva.hora_inicio:
-            datas_reservadas.add(
-                reserva.data_reserva + timedelta(days=1)
-            )
-    datas_bloqueadas = set(
-        DiaBloqueado.objects.values_list('data', flat=True)
-    )
-    datas = sorted(datas_reservadas | datas_bloqueadas)
-    return Response({'datas_indisponiveis': [data.isoformat() for data in datas]})
-
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsCliente])
 def consultar_reserva(request):
     cpf = request.data.get('cpf')
     codigo_reserva = request.data.get('codigo_reserva')
@@ -86,7 +60,6 @@ def consultar_reserva(request):
 
     reserva = Reserva.objects.filter(
         cliente__cpf=cpf,
-        cliente__user=request.user,
         codigo_reserva=codigo_reserva
     ).first()
 
@@ -104,232 +77,6 @@ def consultar_reserva(request):
         'status': reserva.status.nome,
     })
 
-
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsCliente])
-def solicitar_cancelamento(request):
-    cpf = request.data.get('cpf')
-    codigo_reserva = request.data.get('codigo_reserva')
-
-    # 1. Validar os dados recebidos
-    if not cpf or not codigo_reserva:
-        return Response(
-            {'erro': 'CPF e código da reserva são obrigatórios.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # 2. Localizar a reserva do cliente
-    reserva = Reserva.objects.filter(
-        cliente__cpf=cpf,
-        cliente__user=request.user,
-        codigo_reserva=codigo_reserva
-    ).first()
-
-    if not reserva:
-        return Response(
-            {'erro': 'Reserva não encontrada.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    # 3. Verificar se a reserva está confirmada
-    if reserva.status.nome != 'CONFIRMADA':
-        return Response(
-            {
-                'erro': (
-                    'Não é possível solicitar o cancelamento. '
-                    'Somente reservas confirmadas podem ser canceladas.'
-                )
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # 4. Não é possível cancelar um evento que já aconteceu
-    if reserva.data_reserva < timezone.localdate():
-        return Response(
-            {'erro': 'Não é possível cancelar uma reserva de data passada.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # 5. Calcular a taxa e o reembolso segundo a regra de cancelamento
-    calculo = calcular_cancelamento(
-        reserva.data_reserva,
-        reserva.valor_total
-    )
-
-    # Dentro do prazo grátis o cancelamento é automático.
-    # Fora do prazo (com taxa), o administrador ainda precisa aprovar.
-    if calculo['dentro_do_prazo']:
-        nome_novo_status = 'CANCELADA'
-    else:
-        nome_novo_status = 'CANCELAMENTO_SOLICITADO'
-
-    # 6. Buscar o novo status
-    novo_status = StatusReserva.objects.filter(
-        nome=nome_novo_status
-    ).first()
-
-    if not novo_status:
-        return Response(
-            {'erro': f'Status {nome_novo_status} não encontrado.'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-    # 7. Atualizar a reserva
-    reserva.status = novo_status
-    reserva.taxa_cancelamento = calculo['taxa']
-    reserva.valor_reembolso = calculo['reembolso']
-
-    if calculo['dentro_do_prazo']:
-        reserva.cancelado_em = timezone.now()
-
-    reserva.save()
-
-    # 8. Retornar o resultado
-    if calculo['dentro_do_prazo']:
-        mensagem = 'Reserva cancelada com sucesso.'
-    else:
-        mensagem = (
-            'Solicitação de cancelamento enviada. '
-            'Como faltam menos de 7 dias para o evento, '
-            'será cobrada uma taxa e o pedido aguarda aprovação.'
-        )
-
-    return Response({
-        'mensagem': mensagem,
-        'codigo_reserva': reserva.codigo_reserva,
-        'status': reserva.status.nome,
-        'taxa_cancelamento': str(calculo['taxa']),
-        'valor_reembolso': str(calculo['reembolso']),
-    })
-
-
-@api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsCliente])
-@transaction.atomic
-def solicitar_alteracao(request):
-    cpf = request.data.get('cpf')
-    codigo_reserva = request.data.get('codigo_reserva')
-    nova_data = request.data.get('nova_data')
-    novo_horario_inicio = request.data.get('novo_horario_inicio')
-    # O horário de fim enviado pelo site é ignorado: quem calcula o fim
-    # é o servidor, mantendo a duração que o cliente já contratou.
-
-    if (
-        not cpf
-        or not codigo_reserva
-        or not nova_data
-        or not novo_horario_inicio
-    ):
-        return Response(
-            {
-                'erro': 'CPF, código da reserva, nova data e novo horário de início são obrigatórios.'
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    reserva = Reserva.objects.filter(
-        cliente__cpf=cpf,
-        cliente__user=request.user,
-        codigo_reserva=codigo_reserva
-    ).first()
-
-    if not reserva:
-        return Response(
-            {'erro': 'Reserva não encontrada.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    # Somente reservas confirmadas podem pedir alteração
-    if reserva.status.nome != 'CONFIRMADA':
-        return Response(
-            {
-                'erro': (
-                    'Não é possível solicitar a alteração. '
-                    'Somente reservas confirmadas podem ser alteradas.'
-                )
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Converter os textos recebidos em data e hora de verdade.
-    # Se o formato estiver errado, devolvemos 400 em vez de estourar 500.
-    try:
-        nova_data = datetime.strptime(nova_data, '%Y-%m-%d').date()
-        novo_horario_inicio = datetime.strptime(
-            novo_horario_inicio, '%H:%M'
-        ).time()
-    except (ValueError, TypeError):
-        return Response(
-            {
-                'erro': (
-                    'Data ou horário inválido. '
-                    'Use AAAA-MM-DD para a data e HH:MM para o horário.'
-                )
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # A nova data não pode ser no passado
-    if nova_data < timezone.localdate():
-        return Response(
-            {'erro': 'A nova data não pode ser no passado.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # O novo início precisa ser um dos horários oferecidos pelo site
-    if not horario_inicio_valido(novo_horario_inicio):
-        return Response(
-            {'erro': 'Horário de início inválido. Escolha uma hora cheia entre 08:00 e 21:00.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # A duração contratada (8 horas + extras já pagas) não muda.
-    # Ela precisa caber antes das 05:00 no novo horário.
-    horas_extras = reserva.horas_extras or 0
-
-    if horas_extras > horas_extras_maximas(nova_data, novo_horario_inicio):
-        return Response(
-            {'erro': 'Com esse horário de início, a festa passaria das 05:00. Escolha um início mais cedo.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    inicio_dt = datetime.combine(nova_data, novo_horario_inicio)
-    fim_dt = inicio_dt + timedelta(hours=DURACAO_BASE_HORAS + horas_extras)
-
-    status_alteracao = StatusReserva.objects.filter(
-        nome='ALTERACAO_SOLICITADA'
-    ).first()
-
-    if not status_alteracao:
-        return Response(
-            {'erro': 'Status ALTERACAO_SOLICITADA não encontrado.'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-    # Trava a agenda e confere se o novo horário está livre.
-    # A própria reserva é ignorada (ela pode se sobrepor ao horário antigo).
-    travar_agenda()
-
-    if existe_conflito(inicio_dt, fim_dt, excluir_id=reserva.id):
-        return Response(
-            {'erro': 'A nova data e horário solicitados já estão indisponíveis.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    reserva.nova_data_solicitada = nova_data
-    reserva.novo_horario_inicio_solicitado = novo_horario_inicio
-    reserva.novo_horario_fim_solicitado = fim_dt.time()
-    reserva.status = status_alteracao
-    reserva.save()
-
-    return Response({
-        'mensagem': 'Solicitação de alteração enviada com sucesso.',
-        'codigo_reserva': reserva.codigo_reserva,
-        'status': reserva.status.nome
-    })
 
 
 @api_view(['POST'])
@@ -397,12 +144,6 @@ def aprovar_alteracao(request):
     if existe_conflito(inicio_dt, fim_dt, excluir_id=reserva.id):
         return Response(
             {'erro': 'O novo horário não está mais disponível. Rejeite a alteração.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    if existe_dia_bloqueado(inicio_dt, fim_dt):
-        return Response(
-            {'erro': 'A nova data estÃ¡ bloqueada. Rejeite a alteraÃ§Ã£o.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -808,12 +549,6 @@ def criar_reserva(request):
         # 6. Trava a agenda e verifica conflitos de horário
         # (reservas canceladas não bloqueiam o horário)
         travar_agenda()
-
-        if existe_dia_bloqueado(inicio_dt, fim_dt):
-            return Response(
-                {"erro": "A data escolhida está bloqueada. Selecione outra data."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         if existe_conflito(inicio_dt, fim_dt):
             return Response(

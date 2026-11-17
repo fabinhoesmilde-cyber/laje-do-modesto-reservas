@@ -5,15 +5,12 @@ from .views import (
     StatusReservaViewSet,
     ReservaViewSet,
     consultar_reserva,
-    solicitar_cancelamento,
-    solicitar_alteracao,
     aprovar_alteracao,
     rejeitar_alteracao,
     aprovar_cancelamento,
     rejeitar_cancelamento,
     criar_reserva,
-    validar_cupom,
-    disponibilidade_publica,
+    validar_cupom
 )
 
 
@@ -22,23 +19,10 @@ router.register(r'status-reserva', StatusReservaViewSet)
 router.register(r'reservas', ReservaViewSet)
 
 urlpatterns = router.urls + [
-    path('disponibilidade/', disponibilidade_publica, name='disponibilidade-publica'),
     path(
         'consultar-reserva/',
         consultar_reserva,
         name='consultar-reserva'
-    ),
-
-    path(
-        'solicitar-cancelamento/',
-        solicitar_cancelamento,
-        name='solicitar-cancelamento'
-    ),
-
-    path(
-        'solicitar-alteracao/',
-        solicitar_alteracao,
-        name='solicitar-alteracao'
     ),
 
     path(

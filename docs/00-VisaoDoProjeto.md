@@ -22,7 +22,7 @@ Criar um sistema moderno, seguro e responsivo que permita ao cliente realizar re
 
 O sistema é destinado para pessoas interessadas em alugar o espaço da Laje do Modesto para eventos particulares.
 
-Não será necessário criar uma conta para realizar uma reserva.
+O cliente pode fazer uma reserva sem criar conta. Para cancelar ou alterar uma reserva pelo sistema, ele cria uma conta (com confirmação por e-mail) e acessa a **Área do Cliente**.
 
 O administrador será exclusivamente o proprietário da Laje do Modesto.
 
@@ -33,6 +33,8 @@ O administrador será exclusivamente o proprietário da Laje do Modesto.
 * Automatizar o processo de reservas.
 * Diminuir o atendimento manual pelo WhatsApp.
 * Permitir consultas de reservas utilizando CPF e código da reserva.
+* Oferecer uma Área do Cliente, com login, onde ele vê as próprias reservas e pede cancelamento ou alteração.
+* Aplicar automaticamente a política de cancelamento (gratuito até 7 dias antes; taxa depois disso).
 * Centralizar o gerenciamento das reservas.
 * Facilitar pagamentos online.
 * Disponibilizar uma interface amigável para dispositivos móveis.
@@ -92,10 +94,11 @@ O projeto será expandido com novas funcionalidades, incluindo:
 Atualmente o sistema já possui:
 
 * Cadastro de clientes.
-* Cadastro de reservas.
-* Consulta de reservas.
-* Solicitação de alteração.
-* Solicitação de cancelamento.
+* Cadastro de reservas, com regras de horário e proteção contra reservas simultâneas.
+* Consulta pública de reservas (CPF + código), somente leitura.
+* Área do Cliente: cadastro com confirmação por e-mail, login, recuperação de senha, minhas reservas, alteração de dados.
+* Cancelamento pela Área do Cliente: automático até 7 dias antes do evento; depois, taxa de 20% com aprovação do administrador.
+* Solicitação de alteração de data e horário pela Área do Cliente, com aprovação do administrador.
 * Painel administrativo.
 * Dashboard.
 * Login administrativo.
@@ -103,9 +106,11 @@ Atualmente o sistema já possui:
 * Busca de reservas.
 * Layout responsivo inicial.
 
+Ainda não implementado: pagamento online (Mercado Pago, PIX e cartão), expiração automática de reservas sem pagamento, envio de notificações por e-mail sobre aprovações e a publicação em produção.
+
 ---
 
-**Versão do Documento:** 1.0
+**Versão do Documento:** 1.1
 
 **Projeto:** Laje do Modesto Reservas
 
