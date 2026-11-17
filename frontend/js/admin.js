@@ -31,7 +31,12 @@ async function carregarReservas() {
 
     try {
 
-        const resposta = await fetch(`${API_URL}/reservas/`);
+    const resposta = await fetch(`${API_URL}/reservas/`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Token ${adminToken}`
+        }
+    });
 
         if (!resposta.ok) {
             throw new Error("Erro ao carregar reservas.");
@@ -451,9 +456,12 @@ async function abrirModalClientes() {
 
     try {
 
-        const resposta = await fetch(
-            `${API_URL}/clientes/`
-        );
+    const resposta = await fetch(`${API_URL}/clientes/`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Token ${adminToken}`
+        }
+    });
 
         if (!resposta.ok) {
             throw new Error("Erro ao carregar clientes.");
@@ -566,9 +574,12 @@ async function buscarClientes() {
 
     try {
 
-        const resposta = await fetch(
-            "http://127.0.0.1:8000/api/clientes/"
-        );
+        const resposta = await fetch(`${API_URL}/clientes/`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Token ${adminToken}`
+            }
+        });
 
         if (!resposta.ok) {
             throw new Error("Erro ao buscar clientes.");
