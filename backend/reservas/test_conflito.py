@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from clientes.models import Cliente
 from configuracao_laje.models import ConfiguracaoReserva
+from dias_bloqueados.models import DiaBloqueado
 from reservas.disponibilidade import existe_conflito
 from reservas.models import Reserva, StatusReserva
 
@@ -72,26 +73,25 @@ class TesteExisteConflito(BaseConflito):
             )
         )
 
-    def test_reserva_do_dia_anterior_que_vira_a_madrugada_bloqueia(self):
-        dia_anterior = self.data - timedelta(days=1)
-        self.criar_reserva(dia_anterior, "21:00", "05:00")
+    def test_outro_horario_no_mesmo_dia_tambem_conflita(self):
+        # Uma reserva por dia: mesmo sem se sobrepor, o dia já está ocupado
+        self.criar_reserva(self.data, "08:00", "16:00")
 
-        # Das 01:00 às 03:00 do dia seguinte ainda está dentro da festa
         self.assertTrue(
             existe_conflito(
-                self.momento(self.data, 1),
-                self.momento(self.data, 3),
+                self.momento(self.data, 21),
+                self.momento(self.data, 23),
             )
         )
 
-    def test_comecar_exatamente_quando_a_outra_termina_nao_conflita(self):
+    def test_festa_da_noite_anterior_nao_ocupa_o_dia_seguinte(self):
         dia_anterior = self.data - timedelta(days=1)
         self.criar_reserva(dia_anterior, "21:00", "05:00")
 
         self.assertFalse(
             existe_conflito(
-                self.momento(self.data, 5),
-                self.momento(self.data, 13),
+                self.momento(self.data, 8),
+                self.momento(self.data, 16),
             )
         )
 
@@ -131,6 +131,22 @@ class TesteCriarReservaConflito(BaseConflito):
 
         self.assertEqual(resposta.status_code, 400)
         self.assertEqual(Reserva.objects.count(), 1)
+
+    def test_segunda_reserva_no_mesmo_dia_em_outro_horario_e_recusada(self):
+        self.criar_reserva(self.data, "08:00", "16:00")
+
+        resposta = self.criar("21:00")
+
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(Reserva.objects.count(), 1)
+
+    def test_dia_bloqueado_e_recusado(self):
+        DiaBloqueado.objects.create(data=self.data, motivo="Manutenção")
+
+        resposta = self.criar("18:00")
+
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(Reserva.objects.count(), 0)
 
     def test_horario_de_reserva_cancelada_pode_ser_reservado(self):
         self.criar_reserva(

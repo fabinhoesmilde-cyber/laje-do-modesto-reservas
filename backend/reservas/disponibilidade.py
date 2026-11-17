@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from configuracao_laje.models import ConfiguracaoReserva
 from dias_bloqueados.models import DiaBloqueado
@@ -22,22 +22,22 @@ def travar_agenda():
 
 def existe_conflito(inicio_dt, fim_dt, excluir_id=None):
     """
-    Diz se já existe uma reserva ativa que se sobrepõe ao período
-    entre inicio_dt e fim_dt (datas com hora completa).
+    Regra da Laje: só pode haver UMA reserva ativa por dia.
 
-    - Reservas CANCELADA não bloqueiam o horário.
+    Diz se já existe outra reserva, que não esteja cancelada, no dia em
+    que a festa começa (inicio_dt). Não importa o horário: duas festas no
+    mesmo dia não são permitidas.
+
+    - Reservas CANCELADA não ocupam o dia.
     - excluir_id permite ignorar uma reserva (útil ao alterar a própria).
+    - Uma festa da noite que termina de madrugada (até as 05:00) pertence
+      ao dia em que começou. A festa do dia seguinte começa às 08:00 ou
+      depois, então as duas nunca se encontram.
+    - fim_dt não é usado hoje; continua como parâmetro para que quem
+      chama a função não precise mudar.
     """
-    # Uma reserva do dia anterior pode virar a madrugada e invadir este dia,
-    # por isso olhamos também o dia anterior.
-    datas = {
-        inicio_dt.date() - timedelta(days=1),
-        inicio_dt.date(),
-        fim_dt.date(),
-    }
-
     reservas = Reserva.objects.filter(
-        data_reserva__in=datas
+        data_reserva=inicio_dt.date()
     ).exclude(
         status__nome="CANCELADA"
     )
@@ -45,26 +45,7 @@ def existe_conflito(inicio_dt, fim_dt, excluir_id=None):
     if excluir_id is not None:
         reservas = reservas.exclude(id=excluir_id)
 
-    for existente in reservas:
-        inicio_existente = datetime.combine(
-            existente.data_reserva,
-            existente.hora_inicio
-        )
-        fim_existente = datetime.combine(
-            existente.data_reserva,
-            existente.hora_fim
-        )
-
-        # Reserva que termina "antes" de começar atravessou a meia-noite
-        if fim_existente <= inicio_existente:
-            fim_existente += timedelta(days=1)
-
-        # Dois períodos se sobrepõem quando um começa antes
-        # de o outro terminar, e vice-versa.
-        if inicio_dt < fim_existente and fim_dt > inicio_existente:
-            return True
-
-    return False
+    return reservas.exists()
 
 
 def existe_dia_bloqueado(inicio_dt, fim_dt):

@@ -6,6 +6,7 @@ from django.test import TestCase
 from rest_framework.authtoken.models import Token
 
 from clientes.models import Cliente
+from dias_bloqueados.models import DiaBloqueado
 from reservas.models import Reserva, StatusReserva
 
 
@@ -103,6 +104,16 @@ class TesteAprovacaoAlteracao(TestCase):
             valor_base=Decimal("700.00"),
             valor_total=Decimal("700.00"),
         )
+
+        resposta = self.enviar("aprovar-alteracao")
+
+        self.assertEqual(resposta.status_code, 400)
+        self.reserva.refresh_from_db()
+        self.assertEqual(self.reserva.status.nome, "ALTERACAO_SOLICITADA")
+        self.assertEqual(self.reserva.data_reserva, self.data)
+
+    def test_aprovar_recusa_se_a_data_foi_bloqueada_depois_do_pedido(self):
+        DiaBloqueado.objects.create(data=self.nova_data, motivo="Reforma")
 
         resposta = self.enviar("aprovar-alteracao")
 

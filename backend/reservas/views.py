@@ -26,7 +26,11 @@ from configuracao_laje.models import ConfiguracaoReserva
 
 from .models import StatusReserva, Reserva
 from .serializers import StatusReservaSerializer, ReservaSerializer
-from .disponibilidade import existe_conflito, travar_agenda
+from .disponibilidade import (
+    existe_conflito,
+    existe_dia_bloqueado,
+    travar_agenda,
+)
 from .regras import (
     DURACAO_BASE_HORAS,
     calcular_cancelamento,
@@ -140,6 +144,12 @@ def aprovar_alteracao(request):
     # Confere de novo: desde o pedido, outra reserva pode ter ocupado
     # o horário novo.
     travar_agenda()
+
+    if existe_dia_bloqueado(inicio_dt, fim_dt):
+        return Response(
+            {'erro': 'A data solicitada foi bloqueada. Rejeite a alteração.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     if existe_conflito(inicio_dt, fim_dt, excluir_id=reserva.id):
         return Response(
@@ -550,9 +560,15 @@ def criar_reserva(request):
         # (reservas canceladas não bloqueiam o horário)
         travar_agenda()
 
+        if existe_dia_bloqueado(inicio_dt, fim_dt):
+            return Response(
+                {"erro": "Esta data não está disponível para reservas."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         if existe_conflito(inicio_dt, fim_dt):
             return Response(
-                {"erro": "Já existe uma reserva neste horário."},
+                {"erro": "Já existe uma reserva nesta data."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
