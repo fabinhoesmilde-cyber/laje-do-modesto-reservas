@@ -1,5 +1,6 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
+from .disponibilidade_publica import disponibilidade
 
 from .views import (
     StatusReservaViewSet,
@@ -19,6 +20,12 @@ router.register(r'status-reserva', StatusReservaViewSet)
 router.register(r'reservas', ReservaViewSet)
 
 urlpatterns = router.urls + [
+        path(
+        'disponibilidade/',
+        disponibilidade,
+        name='disponibilidade'
+    ),
+    
     path(
         'consultar-reserva/',
         consultar_reserva,
