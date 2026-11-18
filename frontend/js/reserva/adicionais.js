@@ -48,7 +48,7 @@ class Adicionais {
             const nome = document.createElement('strong'); nome.textContent = adicional.nome;
             const descricao = document.createElement('p'); descricao.textContent = adicional.descricao;
             label.append(checkbox, nome, descricao);
-            if (desabilitado) { const info=document.createElement('small'); info.className='adicional-info'; info.textContent='? Incluso no Som Profissional para Eventos'; label.appendChild(info); }
+            if (desabilitado) { const info=document.createElement('small'); info.className='adicional-info'; info.textContent='✓ Incluso no Som Profissional para Eventos'; label.appendChild(info); }
             const valor=document.createElement('span'); valor.textContent=`R$ ${Number(adicional.valor).toFixed(2)}`; label.appendChild(valor);
             card.appendChild(label);
 

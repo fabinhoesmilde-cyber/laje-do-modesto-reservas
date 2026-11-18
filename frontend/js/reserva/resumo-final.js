@@ -208,7 +208,7 @@ class ResumoFinal {
         } else {
             adicionais.forEach(adicional => {
                 const item = document.createElement("p");
-                item.textContent = `? ${adicional.nome}`;
+                item.textContent = `✔ ${adicional.nome}`;
                 container.appendChild(item);
             });
         }

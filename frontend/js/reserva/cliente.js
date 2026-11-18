@@ -232,9 +232,13 @@ class Cliente {
 
         }
 
-        container.innerHTML = resultado.erros
-            .map(erro => `<p class="erro-validacao">${erro}</p>`)
-            .join("");
+        container.replaceChildren();
+        resultado.erros.forEach(erro => {
+            const mensagem = document.createElement('p');
+            mensagem.className = 'erro-validacao';
+            mensagem.textContent = erro;
+            container.appendChild(mensagem);
+        });
 
         return false;
 

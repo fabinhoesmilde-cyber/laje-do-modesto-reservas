@@ -105,16 +105,16 @@ function criarCardReserva(reserva) {
  const el=(tag,cls,text,parent)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;parent?.appendChild(x);return x;};
  const cls={CONFIRMADA:'status-confirmada',ALTERACAO_SOLICITADA:'status-alteracao',CANCELAMENTO_SOLICITADO:'status-cancelamento'}[reserva.status_nome]||'';
  const card=el('div',`painel-reserva ${cls}`), head=el('div','cabecalho-reserva',undefined,card);
- el('h3','',`?? ${reserva.cliente_nome||''}`,head);el('span','badge-status',reserva.status_nome||'',head);
+ el('h3','',`👤 ${reserva.cliente_nome||''}`,head);el('span','badge-status',reserva.status_nome||'',head);
  const info=el('div','info-reserva',undefined,card);const row=(label,value)=>{const p=el('p','',undefined,info);el('strong','',label,p);p.appendChild(document.createTextNode(' '+(value??'')));};
- row('?? C?digo:',reserva.codigo_reserva);row('?? Data:',reserva.data_reserva);row('?? Hor?rio:',`${reserva.hora_inicio||''} ?s ${reserva.hora_fim||''}`);row('?? Total:',`R$ ${reserva.valor_total??''}`);
- const actions=el('div','acoes-reserva',undefined,card), view=el('button','btn-ver','?? Ver',actions);view.addEventListener('click',()=>abrirReserva(reserva.codigo_reserva));
- const funcs=reserva.status_nome==='ALTERACAO_SOLICITADA'?[['aprovarAlteracao','? Aprovar'],['rejeitarAlteracao','? Rejeitar']]:reserva.status_nome==='CANCELAMENTO_SOLICITADO'?[['aprovarCancelamento','? Aprovar'],['rejeitarCancelamento','? Rejeitar']]:[];
+ row('📌 Código:',reserva.codigo_reserva);row('📅 Data:',reserva.data_reserva);row('🕒 Horário:',`${reserva.hora_inicio||''} às ${reserva.hora_fim||''}`);row('💰 Total:',`R$ ${reserva.valor_total??''}`);
+ const actions=el('div','acoes-reserva',undefined,card), view=el('button','btn-ver','👁 Ver',actions);view.addEventListener('click',()=>abrirReserva(reserva.codigo_reserva));
+ const funcs=reserva.status_nome==='ALTERACAO_SOLICITADA'?[['aprovarAlteracao','✅ Aprovar'],['rejeitarAlteracao','❌ Rejeitar']]:reserva.status_nome==='CANCELAMENTO_SOLICITADO'?[['aprovarCancelamento','✅ Aprovar'],['rejeitarCancelamento','❌ Rejeitar']]:[];
  funcs.forEach(([name,label])=>{const button=el('button','',label,actions);button.addEventListener('click',()=>window[name](reserva.codigo_reserva));});return card;
 }
 function renderizarReservas() {
 
-    listaReservas.innerHTML = "";
+    listaReservas.replaceChildren();
 
     let reservas = todasReservas;
 
@@ -494,116 +494,19 @@ renderizarClientes(resultado, clientesEncontrados, "cliente-encontrado");
 }
 
 function verCliente(id) {
-
-    const cliente = clientesEncontrados.find(
-        cliente => cliente.id === id
-    );
-
-    if (!cliente) {
-        alert("Cliente não encontrado.");
-        return;
-    }
-
-    const resultado = document.getElementById("resultadoClientes");
-
-    resultado.innerHTML = `
-
-        <div class="detalhes-cliente">
-
-            <div class="cabecalho-cliente">
-
-                <div>
-
-                    <span class="modal-subtitulo">
-                        Cliente selecionado
-                    </span>
-
-                    <h2>
-                        👤 ${cliente.nome}
-                    </h2>
-
-                </div>
-
-            </div>
-
-            <div class="grid-modal">
-
-                <div class="info-box">
-
-                    <h3>
-                        👤 Informações pessoais
-                    </h3>
-
-                    <p>
-                        <strong>Nome</strong>
-                        ${cliente.nome}
-                    </p>
-
-                    <p>
-                        <strong>CPF</strong>
-                        ${cliente.cpf}
-                    </p>
-
-                </div>
-
-                <div class="info-box">
-
-                    <h3>
-                        📞 Contato
-                    </h3>
-
-                    <p>
-                        <strong>Telefone</strong>
-                        ${cliente.telefone}
-                    </p>
-
-                    <p>
-                        <strong>E-mail</strong>
-                        ${cliente.email}
-                    </p>
-
-                </div>
-
-                <div class="info-box info-box-full">
-
-                    <h3>
-                        📅 Cadastro
-                    </h3>
-
-                    <p>
-                        <strong>Cadastrado em</strong>
-                        ${new Date(cliente.criado_em).toLocaleDateString("pt-BR")}
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="acoes-cliente">
-
-                <button
-                    class="btn-voltar-cliente"
-                    onclick="voltarBuscaClientes()"
-                >
-                    <i class="fa-solid fa-arrow-left"></i>
-                    Voltar
-                </button>
-
-                <button
-                    class="btn-editar-cliente"
-                    onclick="editarCliente(${cliente.id})"
-                >
-                    <i class="fa-solid fa-pen"></i>
-                    Editar cliente
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-
+    const cliente=clientesEncontrados.find(item=>item.id===id);
+    if(!cliente){alert('Cliente não encontrado.');return;}
+    const resultado=document.getElementById('resultadoClientes');
+    const el=(tag,cls,text,parent)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;parent?.appendChild(n);return n;};
+    const detalhes=el('div','detalhes-cliente',undefined,resultado);const cab=el('div','cabecalho-cliente',undefined,detalhes);const inner=el('div','',undefined,cab);
+    el('span','modal-subtitulo','Cliente selecionado',inner);el('h2','','👤 '+(cliente.nome||''),inner);
+    const grid=el('div','grid-modal',undefined,detalhes);let box=el('div','info-box',undefined,grid);el('h3','','👤 Informações pessoais',box);
+    const field=(parent,label,value)=>{const p=el('p','',undefined,parent);el('strong','',label,p);p.appendChild(document.createTextNode(' '+(value||'')));};
+    field(box,'Nome',cliente.nome);field(box,'CPF',cliente.cpf);box=el('div','info-box',undefined,grid);el('h3','','📞 Contato',box);field(box,'Telefone',cliente.telefone);field(box,'E-mail',cliente.email);
+    box=el('div','info-box info-box-full',undefined,grid);el('h3','','📅 Cadastro',box);field(box,'Cadastrado em',new Date(cliente.criado_em).toLocaleDateString('pt-BR'));
+    const actions=el('div','acoes-cliente',undefined,detalhes);const back=el('button','btn-voltar-cliente','Voltar',actions);back.addEventListener('click',voltarBuscaClientes);const edit=el('button','btn-editar-cliente','Editar cliente',actions);edit.addEventListener('click',()=>editarCliente(cliente.id));
 }
+
 function voltarBuscaClientes() {
 
     const resultado = document.getElementById("resultadoClientes");
@@ -629,115 +532,15 @@ function voltarBuscaClientes() {
 }
 
 function editarCliente(id) {
-
-    const cliente = clientesEncontrados.find(
-        cliente => cliente.id === id
-    );
-
-    if (!cliente) {
-        alert("Cliente não encontrado.");
-        return;
-    }
-
-    const resultado = document.getElementById("resultadoClientes");
-
-    resultado.innerHTML = `
-
-        <div class="detalhes-cliente">
-
-            <div class="cabecalho-cliente">
-
-                <div>
-
-                    <span class="modal-subtitulo">
-                        Editando cliente
-                    </span>
-
-                    <h2>
-                        ✏️ ${cliente.nome}
-                    </h2>
-
-                </div>
-
-            </div>
-
-            <div class="grid-modal">
-
-                <div class="info-box">
-
-                    <h3>
-                        👤 Informações pessoais
-                    </h3>
-
-                    <label>Nome</label>
-
-                    <input
-                        type="text"
-                        id="editarNome"
-                        value="${cliente.nome}"
-                    >
-
-                    <label>CPF</label>
-
-                    <input
-                        type="text"
-                        id="editarCpf"
-                        value="${cliente.cpf}"
-                    >
-
-                </div>
-
-                <div class="info-box">
-
-                    <h3>
-                        📞 Contato
-                    </h3>
-
-                    <label>Telefone</label>
-
-                    <input
-                        type="text"
-                        id="editarTelefone"
-                        value="${cliente.telefone}"
-                    >
-
-                    <label>E-mail</label>
-
-                    <input
-                        type="email"
-                        id="editarEmail"
-                        value="${cliente.email}"
-                    >
-
-                </div>
-
-            </div>
-
-            <div class="acoes-cliente">
-
-                <button
-                    class="btn-voltar-cliente"
-                    onclick="verCliente(${cliente.id})"
-                >
-                    <i class="fa-solid fa-xmark"></i>
-                    Cancelar
-                </button>
-
-                <button
-                    class="btn-editar-cliente"
-                    onclick="salvarCliente(${cliente.id})"
-                >
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    Salvar alterações
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-
+    const cliente=clientesEncontrados.find(item=>item.id===id);if(!cliente){alert('Cliente não encontrado.');return;}
+    const resultado=document.getElementById('resultadoClientes');const el=(tag,cls,text,parent)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;parent?.appendChild(n);return n;};
+    const detalhes=el('div','detalhes-cliente',undefined,resultado);const cab=el('div','cabecalho-cliente',undefined,detalhes);const inner=el('div','',undefined,cab);el('span','modal-subtitulo','Editando cliente',inner);el('h2','','👤 '+(cliente.nome||''),inner);
+    const grid=el('div','grid-modal',undefined,detalhes);let box=el('div','info-box',undefined,grid);el('h3','','👤 Informações pessoais',box);
+    const input=(parent,label,id,type,value)=>{el('label','',label,parent);const field=el('input','',undefined,parent);field.type=type;field.id=id;field.value=value||'';};
+    input(box,'Nome','editarNome','text',cliente.nome);input(box,'CPF','editarCpf','text',cliente.cpf);box=el('div','info-box',undefined,grid);el('h3','','📞 Contato',box);input(box,'Telefone','editarTelefone','text',cliente.telefone);input(box,'E-mail','editarEmail','email',cliente.email);
+    const actions=el('div','acoes-cliente',undefined,detalhes);const cancel=el('button','btn-voltar-cliente','Cancelar',actions);cancel.addEventListener('click',()=>verCliente(cliente.id));const save=el('button','btn-editar-cliente','Salvar alterações',actions);save.addEventListener('click',()=>salvarCliente(cliente.id));
 }
+
 async function salvarCliente(id) {
 
     const nome = document.getElementById("editarNome").value.trim();
@@ -837,120 +640,16 @@ function fecharConfiguracoes() {
 }
 
 function carregarProximaReserva() {
-
-    const conteudo =
-        document.getElementById("conteudoProximaReserva");
-
-    if (!conteudo) {
-        return;
-    }
-
-    const hoje = new Date();
-
-    hoje.setHours(0, 0, 0, 0);
-
-    const reservasFuturas = todasReservas.filter(reserva => {
-
-        const dataReserva =
-            new Date(reserva.data_reserva + "T00:00:00");
-
-        return (
-            reserva.status_nome === "CONFIRMADA" &&
-            dataReserva >= hoje
-        );
-
-    });
-
-    reservasFuturas.sort((a, b) => {
-
-        const dataA =
-            new Date(a.data_reserva + "T00:00:00");
-
-        const dataB =
-            new Date(b.data_reserva + "T00:00:00");
-
-        return dataA - dataB;
-
-    });
-
-    if (reservasFuturas.length === 0) {
-
-        conteudo.innerHTML = `
-
-            <div class="sem-proxima-reserva">
-
-                <i class="fa-solid fa-calendar-xmark"></i>
-
-                <p>
-                    Nenhuma próxima reserva confirmada.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-    const reserva = reservasFuturas[0];
-
-    const dataFormatada =
-        new Date(
-            reserva.data_reserva + "T00:00:00"
-        ).toLocaleDateString(
-            "pt-BR"
-        );
-
-    conteudo.innerHTML = `
-
-        <div class="proxima-reserva-card">
-
-            <div class="proxima-cliente">
-
-                <h3>
-                    👤 ${reserva.cliente_nome}
-                </h3>
-
-                <p>
-                    Código: ${reserva.codigo_reserva}
-                </p>
-
-                <div class="proxima-info">
-
-                    <span>
-                        <i class="fa-solid fa-calendar"></i>
-                        ${dataFormatada}
-                    </span>
-
-                    <span>
-                        <i class="fa-solid fa-clock"></i>
-                        ${reserva.hora_inicio.slice(0, 5)}
-                        às
-                        ${reserva.hora_fim.slice(0, 5)}
-                    </span>
-
-                    <span>
-                        <i class="fa-solid fa-circle-check"></i>
-                        Confirmada
-                    </span>
-
-                </div>
-
-            </div>
-
-            <button
-                class="btn-ver-proxima-reserva"
-                onclick="abrirReserva('${reserva.codigo_reserva}')"
-            >
-                <i class="fa-solid fa-eye"></i>
-                Ver Reserva
-            </button>
-
-        </div>
-
-    `;
-
+    const conteudo=document.getElementById('conteudoProximaReserva');if(!conteudo)return;
+    const hoje=new Date();hoje.setHours(0,0,0,0);
+    const futuras=todasReservas.filter(r=>r.status_nome==='CONFIRMADA'&&new Date(r.data_reserva+'T00:00:00')>=hoje).sort((a,b)=>new Date(a.data_reserva+'T00:00:00')-new Date(b.data_reserva+'T00:00:00'));
+    const el=(tag,cls,text,parent)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;parent?.appendChild(n);return n;};
+    if(!futuras.length){const box=el('div','sem-proxima-reserva',undefined,conteudo);const icon=el('i','fa-solid fa-calendar-xmark',undefined,box);el('p','','Nenhuma próxima reserva confirmada.',box);return;}
+    const r=futuras[0], card=el('div','proxima-reserva-card',undefined,conteudo), customer=el('div','proxima-cliente',undefined,card);
+    el('h3','','👤 '+(r.cliente_nome||''),customer);el('p','','Código: '+(r.codigo_reserva||''),customer);const info=el('div','proxima-info',undefined,customer);
+    const span=(iconClass,text)=>{const item=el('span','',undefined,info);el('i',iconClass,undefined,item);item.appendChild(document.createTextNode(' '+text));};
+    span('fa-solid fa-calendar',new Date(r.data_reserva+'T00:00:00').toLocaleDateString('pt-BR'));span('fa-solid fa-clock',(r.hora_inicio||'').slice(0,5)+' às '+(r.hora_fim||'').slice(0,5));span('fa-solid fa-circle-check','Confirmada');
+    const button=el('button','btn-ver-proxima-reserva','Ver Reserva',card);button.addEventListener('click',()=>abrirReserva(r.codigo_reserva));
 }
 
 /*modal das informaçoes da laje */
@@ -1754,7 +1453,7 @@ async function carregarAdicionais() {
             return;
         }
 
-        lista.innerHTML = "";
+        lista.replaceChildren();
 
         dados.forEach((adicional) => {
             const item = document.createElement("div");
@@ -1994,55 +1693,16 @@ window.excluirAdicional = excluirAdicional;
 
 
 function editarAdicional(adicional) {
-    const conteudo = document.getElementById("conteudoConfiguracoes");
-
-    if (!conteudo) return;
-
-    conteudo.innerHTML = `
-        <div class="cabecalho-configuracoes">
-            <button
-                class="btn-voltar-config"
-                onclick="abrirAdicionais()"
-            >
-                <i class="fa-solid fa-arrow-left"></i>
-                Voltar
-            </button>
-
-            <h2>Editar Adicional</h2>
-        </div>
-
-        <div class="form-configuracoes">
-            <label for="editarAdicionalNome">Nome</label>
-            <input
-                type="text"
-                id="editarAdicionalNome"
-                value="${String(adicional.nome || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}"
-            >
-
-            <label for="editarAdicionalDescricao">Descrição</label>
-            <textarea id="editarAdicionalDescricao">${String(adicional.descricao || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</textarea>
-
-            <label for="editarAdicionalValor">Valor (R$)</label>
-            <input
-                type="number"
-                id="editarAdicionalValor"
-                min="0"
-                step="0.01"
-                value="${Number(adicional.valor)}"
-            >
-
-            <button
-                class="btn-salvar-config"
-                onclick="salvarEdicaoAdicional(${Number(adicional.id)})"
-            >
-                Salvar alterações
-            </button>
-        </div>
-    `;
+    const conteudo=document.getElementById('conteudoConfiguracoes');if(!conteudo)return;
+    const el=(tag,cls,text,parent)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;parent?.appendChild(n);return n;};
+    const head=el('div','cabecalho-configuracoes',undefined,conteudo);const back=el('button','btn-voltar-config','Voltar',head);back.addEventListener('click',abrirAdicionais);el('h2','','Editar Adicional',head);
+    const form=el('div','form-configuracoes',undefined,conteudo);
+    const field=(label,id,tag,value)=>{el('label','',label,form);const n=el(tag,'',undefined,form);n.id=id;if(tag==='textarea')n.value=value||'';else n.value=value??'';return n;};
+    field('Nome','editarAdicionalNome','input',adicional.nome);field('Descrição','editarAdicionalDescricao','textarea',adicional.descricao);field('Valor (R$)','editarAdicionalValor','input',Number(adicional.valor));
+    const save=el('button','btn-salvar-config','Salvar alterações',form);save.addEventListener('click',()=>salvarEdicaoAdicional(Number(adicional.id)));
 }
 
 window.editarAdicional = editarAdicional;
-
 
 async function salvarEdicaoAdicional(id) {
     const nome = document
@@ -2143,32 +1803,14 @@ async function carregarDiasBloqueados() {
             return;
         }
 
-        lista.innerHTML = dias.map(dia => {
-            const [ano, mes, diaNumero] = dia.data.split("-");
-
-            const dataFormatada = `${diaNumero}/${mes}/${ano}`;
-
-            return `
-                <div class="cliente-resultado">
-                    <div>
-                        <strong>📅 ${dataFormatada}</strong>
-                        <p>
-                            Motivo: ${
-                                dia.motivo || "Não informado"
-                            }
-                        </p>
-                    </div>
-
-                    <button
-                        class="btn-voltar-cliente"
-                        onclick="excluirDiaBloqueado(${dia.id})"
-                    >
-                        <i class="fa-solid fa-trash"></i>
-                        Remover
-                    </button>
-                </div>
-            `;
-        }).join("");
+        lista.replaceChildren();
+        dias.forEach(dia => {
+            const [ano, mes, numero] = (dia.data||'').split('-');
+            const row=document.createElement('div');row.className='cliente-resultado';const details=document.createElement('div');
+            const date=document.createElement('strong');date.textContent='👤 '+[numero,mes,ano].join('/');details.appendChild(date);
+            const reason=document.createElement('p');reason.textContent='Motivo: '+(dia.motivo||'Não informado');details.appendChild(reason);
+            const button=document.createElement('button');button.className='btn-voltar-cliente';button.textContent='Remover';button.addEventListener('click',()=>excluirDiaBloqueado(dia.id));row.append(details,button);lista.appendChild(row);
+        });
 
     } catch (erro) {
         console.error("Erro ao carregar dias bloqueados:", erro);
@@ -2302,7 +1944,7 @@ async function carregarCupons() {
             return;
         }
 
-        lista.innerHTML = "";
+        lista.replaceChildren();
 
         dados.forEach((cupom) => {
             const item = document.createElement("div");
