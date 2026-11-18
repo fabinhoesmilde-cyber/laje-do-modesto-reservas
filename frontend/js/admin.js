@@ -102,145 +102,16 @@ function atualizarDashboard() {
 }
 
 function criarCardReserva(reserva) {
-
-    let classeStatus = "";
-    let botoes = "";
-
-    switch (reserva.status_nome) {
-
-        case "CONFIRMADA":
-
-            classeStatus = "status-confirmada";
-
-            break;
-
-        case "ALTERACAO_SOLICITADA":
-
-            classeStatus = "status-alteracao";
-
-            botoes = `
-
-                <button onclick="aprovarAlteracao('${reserva.codigo_reserva}')">
-
-                    ✔ Aprovar
-
-                </button>
-
-                <button onclick="rejeitarAlteracao('${reserva.codigo_reserva}')">
-
-                    ✖ Rejeitar
-
-                </button>
-
-            `;
-
-            break;
-
-        case "CANCELAMENTO_SOLICITADO":
-
-            classeStatus = "status-cancelamento";
-
-            botoes = `
-
-                <button onclick="aprovarCancelamento('${reserva.codigo_reserva}')">
-
-                    ✔ Aprovar
-
-                </button>
-
-                <button onclick="rejeitarCancelamento('${reserva.codigo_reserva}')">
-
-                    ✖ Rejeitar
-
-                </button>
-
-            `;
-
-            break;
-
-    }
-
-    return `
-
-    <div class="painel-reserva ${classeStatus}">
-
-        <div class="cabecalho-reserva">
-
-            <h3>
-
-                👤 ${reserva.cliente_nome}
-
-            </h3>
-
-            <span class="badge-status">
-
-                ${reserva.status_nome}
-
-            </span>
-
-        </div>
-
-        <div class="info-reserva">
-
-            <p>
-
-                📌 <strong>Código:</strong>
-
-                ${reserva.codigo_reserva}
-
-            </p>
-
-            <p>
-
-                📅 <strong>Data:</strong>
-
-                ${reserva.data_reserva}
-
-            </p>
-
-            <p>
-
-                🕒 <strong>Horário:</strong>
-
-                ${reserva.hora_inicio}
-
-                às
-
-                ${reserva.hora_fim}
-
-            </p>
-
-            <p>
-
-                💰 <strong>Total:</strong>
-
-                R$ ${reserva.valor_total}
-
-            </p>
-
-        </div>
-
-        <div class="acoes-reserva">
-
-            <button
-                class="btn-ver"
-                onclick="abrirReserva('${reserva.codigo_reserva}')"
-            >
-
-                👁 Ver
-
-            </button>
-
-            ${botoes}
-
-        </div>
-
-    </div>
-
-    `;
-
+ const el=(tag,cls,text,parent)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;parent?.appendChild(x);return x;};
+ const cls={CONFIRMADA:'status-confirmada',ALTERACAO_SOLICITADA:'status-alteracao',CANCELAMENTO_SOLICITADO:'status-cancelamento'}[reserva.status_nome]||'';
+ const card=el('div',`painel-reserva ${cls}`), head=el('div','cabecalho-reserva',undefined,card);
+ el('h3','',`?? ${reserva.cliente_nome||''}`,head);el('span','badge-status',reserva.status_nome||'',head);
+ const info=el('div','info-reserva',undefined,card);const row=(label,value)=>{const p=el('p','',undefined,info);el('strong','',label,p);p.appendChild(document.createTextNode(' '+(value??'')));};
+ row('?? C?digo:',reserva.codigo_reserva);row('?? Data:',reserva.data_reserva);row('?? Hor?rio:',`${reserva.hora_inicio||''} ?s ${reserva.hora_fim||''}`);row('?? Total:',`R$ ${reserva.valor_total??''}`);
+ const actions=el('div','acoes-reserva',undefined,card), view=el('button','btn-ver','?? Ver',actions);view.addEventListener('click',()=>abrirReserva(reserva.codigo_reserva));
+ const funcs=reserva.status_nome==='ALTERACAO_SOLICITADA'?[['aprovarAlteracao','? Aprovar'],['rejeitarAlteracao','? Rejeitar']]:reserva.status_nome==='CANCELAMENTO_SOLICITADO'?[['aprovarCancelamento','? Aprovar'],['rejeitarCancelamento','? Rejeitar']]:[];
+ funcs.forEach(([name,label])=>{const button=el('button','',label,actions);button.addEventListener('click',()=>window[name](reserva.codigo_reserva));});return card;
 }
-
 function renderizarReservas() {
 
     listaReservas.innerHTML = "";
@@ -257,11 +128,46 @@ function renderizarReservas() {
 
     reservas.forEach(reserva => {
 
-        listaReservas.innerHTML += criarCardReserva(reserva);
+        listaReservas.appendChild(criarCardReserva(reserva));
 
     });
 
 }
+
+async function executarAcaoReserva(codigo, rota, acao) {
+    if (!confirm(`Confirma ${acao} da reserva ${codigo}?`)) return;
+    try {
+        const resposta = await fetchAdmin(`${API_URL}/${rota}/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ codigo_reserva: codigo })
+        });
+        const dados = await resposta.json().catch(() => ({}));
+        if (resposta.status === 401) {
+            localStorage.removeItem("adminToken");
+            window.location.href = "admin-login.html";
+            return;
+        }
+        const mensagem = dados.erro || dados.detail || dados.mensagem || "Operação concluída.";
+        if (!resposta.ok) {
+            alert(mensagem);
+            return;
+        }
+        alert(mensagem);
+        await carregarReservas();
+    } catch (erro) {
+        alert(erro.message || "Não foi possível concluir a operação.");
+    }
+}
+
+function aprovarAlteracao(codigo) { return executarAcaoReserva(codigo, "aprovar-alteracao", "a aprovação"); }
+function rejeitarAlteracao(codigo) { return executarAcaoReserva(codigo, "rejeitar-alteracao", "a rejeição"); }
+function aprovarCancelamento(codigo) { return executarAcaoReserva(codigo, "aprovar-cancelamento", "a aprovação"); }
+function rejeitarCancelamento(codigo) { return executarAcaoReserva(codigo, "rejeitar-cancelamento", "a rejeição"); }
+window.aprovarAlteracao = aprovarAlteracao;
+window.rejeitarAlteracao = rejeitarAlteracao;
+window.aprovarCancelamento = aprovarCancelamento;
+window.rejeitarCancelamento = rejeitarCancelamento;
 
 const modal = document.getElementById("modalReserva");
 const botaoFecharModal = document.getElementById("fecharModal");
@@ -491,62 +397,19 @@ async function abrirModalClientes() {
 
 }
 
+function renderizarClientes(resultado, clientes, classe='cliente-resultado') {
+    resultado.replaceChildren();
+    clientes.forEach(cliente => {
+        const row=document.createElement('div'); row.className=classe;
+        const details=document.createElement('div'); const nome=document.createElement('strong'); nome.textContent=cliente.nome||''; details.appendChild(nome);
+        [['CPF',cliente.cpf],['Telefone',cliente.telefone],['E-mail',cliente.email]].forEach(([label,value])=>{const p=document.createElement('p');p.textContent=label+': '+(value||'');details.appendChild(p);});
+        const button=document.createElement('button');button.className='btn-ver-cliente';button.textContent='Ver cliente';button.addEventListener('click',()=>verCliente(cliente.id));row.append(details,button);resultado.appendChild(row);
+    });
+}
 function mostrarClientes(clientes) {
-
-    const resultado = document.getElementById("resultadoClientes");
-
-    if (!resultado) {
-        return;
-    }
-
-    if (clientes.length === 0) {
-
-        resultado.innerHTML = `
-            <p class="mensagem-clientes">
-                Nenhum cliente cadastrado.
-            </p>
-        `;
-
-        return;
-
-    }
-
-    resultado.innerHTML = clientes.map(cliente => `
-
-        <div class="cliente-resultado">
-
-            <div>
-
-                <strong>
-                    ${cliente.nome}
-                </strong>
-
-                <p>
-                    CPF: ${cliente.cpf}
-                </p>
-
-                <p>
-                    Telefone: ${cliente.telefone}
-                </p>
-
-                <p>
-                    E-mail: ${cliente.email}
-                </p>
-
-            </div>
-
-            <button
-                class="btn-ver-cliente"
-                onclick="verCliente(${cliente.id})"
-            >
-                <i class="fa-solid fa-eye"></i>
-                Ver cliente
-            </button>
-
-        </div>
-
-    `).join("");
-
+    const resultado=document.getElementById('resultadoClientes'); if(!resultado)return;
+    if(!clientes.length){const p=document.createElement('p');p.className='mensagem-clientes';p.textContent='Nenhum cliente cadastrado.';resultado.replaceChildren(p);return;}
+    renderizarClientes(resultado,clientes);
 }
 
 function fecharModalClientes() {
@@ -614,41 +477,7 @@ async function buscarClientes() {
             return;
         }
 
-resultado.innerHTML = clientesEncontrados.map(cliente => `
-
-    <div class="cliente-resultado">
-
-        <div>
-
-            <strong>
-                ${cliente.nome}
-            </strong>
-
-            <p>
-                CPF: ${cliente.cpf}
-            </p>
-
-            <p>
-                Telefone: ${cliente.telefone}
-            </p>
-
-            <p>
-                E-mail: ${cliente.email}
-            </p>
-
-        </div>
-
-        <button
-            class="btn-ver-cliente"
-            onclick="verCliente(${cliente.id})"
-        >
-            <i class="fa-solid fa-eye"></i>
-            Ver cliente
-        </button>
-
-    </div>
-
-`).join("");
+renderizarClientes(resultado, clientesEncontrados, "cliente-encontrado");
 
     } catch (erro) {
 
@@ -795,44 +624,7 @@ function voltarBuscaClientes() {
 
     }
 
-    resultado.innerHTML = clientesEncontrados.map(cliente => `
-
-        <div class="cliente-encontrado">
-
-            <div class="cliente-info">
-
-                <h3>
-                    👤 ${cliente.nome}
-                </h3>
-
-                <p>
-                    <strong>CPF:</strong>
-                    ${cliente.cpf}
-                </p>
-
-                <p>
-                    <strong>Telefone:</strong>
-                    ${cliente.telefone}
-                </p>
-
-                <p>
-                    <strong>E-mail:</strong>
-                    ${cliente.email}
-                </p>
-
-            </div>
-
-            <button
-                class="btn-ver-cliente"
-                onclick="verCliente(${cliente.id})"
-            >
-                <i class="fa-solid fa-eye"></i>
-                Ver cliente
-            </button>
-
-        </div>
-
-    `).join("");
+    renderizarClientes(resultado, clientesEncontrados, "cliente-encontrado");
 
 }
 

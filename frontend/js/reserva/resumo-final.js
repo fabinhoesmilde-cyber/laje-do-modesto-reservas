@@ -202,10 +202,14 @@ class ResumoFinal {
         const adicionais = reserva.getAdicionaisSelecionados();
 
         if (adicionais.length === 0) {
-            container.innerHTML = "<p>Nenhum adicional selecionado.</p>";
+            const vazio = document.createElement("p");
+            vazio.textContent = "Nenhum adicional selecionado.";
+            container.appendChild(vazio);
         } else {
             adicionais.forEach(adicional => {
-                container.innerHTML += `<p>✔ ${adicional.nome}</p>`;
+                const item = document.createElement("p");
+                item.textContent = `? ${adicional.nome}`;
+                container.appendChild(item);
             });
         }
 

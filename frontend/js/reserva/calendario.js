@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", iniciarCalendario);
 let calendar;
 
 let datasBloqueadas = [];
+let disponibilidadeCarregada = false;
 
 // ======================================
 
@@ -30,10 +31,15 @@ async function carregarDatasBloqueadas() {
 
         const dados = await resposta.json();
         datasBloqueadas = dados.datas_indisponiveis || [];
+        disponibilidadeCarregada = true;
 
     } catch (erro) {
 
         console.error(erro);
+        const mensagem = document.createElement("p");
+        mensagem.className = "mensagem-calendario";
+        mensagem.textContent = "Não foi possível carregar as datas disponíveis. Tente novamente.";
+        document.getElementById("calendar-container")?.appendChild(mensagem);
 
     }
 
@@ -110,6 +116,8 @@ dateClick: selecionarData
 // ======================================
 
 function selecionarData(info) {
+
+    if (!disponibilidadeCarregada) return;
 
     if (datasBloqueadas.includes(info.dateStr)) {
         alert("Essa data está indisponível. Escolha outra data.");

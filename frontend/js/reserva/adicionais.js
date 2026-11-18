@@ -42,33 +42,15 @@ class Adicionais {
 
             card.className = "adicional-card";
 
-            card.innerHTML = `
-                <label>
-
-                    <input
-                        type="checkbox"
-                        ${selecionado ? "checked" : ""}
-                        ${desabilitado ? "disabled" : ""}>
-
-                    <strong>${adicional.nome}</strong>
-
-                    <p>${adicional.descricao}</p>
-
-                    ${desabilitado ? `
-                    <small class="adicional-info">
-                        ✓ Incluso no Som Profissional para Eventos
-                    </small>
-                ` : ""}
-
-                <span>
-                    R$ ${Number(adicional.valor).toFixed(2)}
-                </span>
-
-                </label>
-            `;
-
-            const checkbox =
-                card.querySelector("input");
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox'; checkbox.checked = selecionado; checkbox.disabled = desabilitado;
+            const nome = document.createElement('strong'); nome.textContent = adicional.nome;
+            const descricao = document.createElement('p'); descricao.textContent = adicional.descricao;
+            label.append(checkbox, nome, descricao);
+            if (desabilitado) { const info=document.createElement('small'); info.className='adicional-info'; info.textContent='? Incluso no Som Profissional para Eventos'; label.appendChild(info); }
+            const valor=document.createElement('span'); valor.textContent=`R$ ${Number(adicional.valor).toFixed(2)}`; label.appendChild(valor);
+            card.appendChild(label);
 
             checkbox.addEventListener("change", () => {
 
